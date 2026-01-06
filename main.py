@@ -1,8 +1,9 @@
+from datetime import date
 from qdrant_client import QdrantClient
 
 from rag.embedder import OllamaEmbedder
 from rag.models import TransactionDoc
-from rag.qdrant_store import QdrantIndexer
+from rag.qdrant_indexer import QdrantIndexer
 
 
 qdrant_client = QdrantClient(url="localhost:6333")
@@ -20,6 +21,6 @@ doc = TransactionDoc(
     category_id=90,
     currency="USD",
     amount=1000,
-    date_utc="2025-10-10",
+    date_utc=date.today(),
 )
 indexer.index_document(doc)

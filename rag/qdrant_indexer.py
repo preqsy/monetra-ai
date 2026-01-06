@@ -38,4 +38,4 @@ class QdrantIndexer:
             collection_name="monetra_collection",
             points=[PointStruct(id=doc.doc_id, vector=embedded_doc, payload=payload)],
         )
-        print(f"Added doc: {doc.doc_id} to Qdrant")
+        print(f"Added doc: {doc.doc_id} to Qdrant, text: {doc.text}")
