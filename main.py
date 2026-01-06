@@ -1,10 +1,25 @@
-from fastapi import FastAPI
-from config.config import settings
+from qdrant_client import QdrantClient
 
-app = FastAPI()
+from rag.embedder import OllamaEmbedder
+from rag.models import TransactionDoc
+from rag.qdrant_store import QdrantIndexer
 
 
-@app.get("/")
-async def read_root():
-    print(f"Using LLM Model: {settings.LLM_MODEL_NAME}")
-    return {"Hello": "World"}
+qdrant_client = QdrantClient(url="localhost:6333")
+embedder = OllamaEmbedder()
+indexer = QdrantIndexer(qdrant_client=qdrant_client, embedder=embedder)
+
+
+doc = TransactionDoc(
+    doc_id=1,
+    doc_type="transaction",
+    text="Hello world",
+    user_id=10,
+    transaction_id=10,
+    account_id=4,
+    category_id=90,
+    currency="USD",
+    amount=1000,
+    date_utc="2025-10-10",
+)
+indexer.index_document(doc)
