@@ -24,7 +24,7 @@ class QdrantRetriever:
         results = self.qdrant_client.query_points(
             "monetra_collection",
             query=embedded_query,
-            limit=5,
+            limit=2,
             with_payload=True,
             with_vectors=False,
         )

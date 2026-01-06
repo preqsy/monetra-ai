@@ -1,40 +1,9 @@
-import sys
-from datetime import date
-from qdrant_client import QdrantClient
-
-from rag.embedder import OllamaEmbedder
-from rag.models import TransactionDoc
-from rag.qdrant_indexer import QdrantIndexer
-from rag.qdrant_retrieval import QdrantRetriever
+from fastapi import FastAPI
 
 
-def main():
-
-    if len(sys.argv) > 2:
-        return
-
-    query = sys.argv[1]
-    qdrant_client = QdrantClient(url="localhost:6333")
-    embedder = OllamaEmbedder()
-    indexer = QdrantIndexer(qdrant_client=qdrant_client, embedder=embedder)
-    retriever = QdrantRetriever(qdrant_client=qdrant_client, embedder=embedder)
-
-    doc = TransactionDoc(
-        doc_id=2,
-        doc_type="transaction",
-        text="Hello world",
-        user_id=10,
-        transaction_id=10,
-        account_id=4,
-        category_id=90,
-        currency="USD",
-        amount=1000,
-        date_utc=date.today(),
-    )
-    indexer.index_document(doc)
-    print(f"Query: {query}")
-    results = retriever.retrieve_documents(query=query)
-    print(f"Results: {results}")
+app = FastAPI()
 
 
-main()
+@app.get("/")
+def read_root():
+    return {"Message": "Hello World"}

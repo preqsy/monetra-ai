@@ -32,7 +32,10 @@ class QdrantIndexer:
 
         embedded_doc = self.embedder.embed(doc.text)
         self.ensure_collection(vector_size=len(embedded_doc))
-        payload = doc.model_dump(exclude={"text"}, mode="json")
+        payload = doc.model_dump(
+            # exclude={"text"},
+            mode="json",
+        )
 
         self.qdrant_client.upsert(
             collection_name="monetra_collection",
