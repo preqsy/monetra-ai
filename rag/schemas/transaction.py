@@ -1,5 +1,5 @@
 from datetime import date
-from typing import ClassVar
+from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from rag.schemas.enums import TransactionTypeEnum
@@ -55,3 +55,45 @@ class TransactionDoc(BaseModel):
         if doc_type == "transaction":
             values["doc_id"] = f"transaction-{values.get(cls.TRANSACTION_ID)}"
         return values
+
+
+class TransactionSearchFilters(BaseModel):
+    doc_type: str = "transaction"
+
+    # optional payload filters
+    account_id: Optional[str] = None
+    category_id: Optional[str] = None
+    currency: Optional[str] = None
+    is_transfer: Optional[bool] = None
+
+    # epoch seconds in UTC
+    date_from_utc: Optional[int] = Field(default=None, ge=0)
+    date_to_utc: Optional[int] = Field(default=None, ge=0)
+
+
+class TransactionSearchRequest(BaseModel):
+    user_id: int
+    query: str = Field(min_length=1, max_length=500)
+    top_k: int = Field(default=10, ge=1, le=50)
+    filters: TransactionSearchFilters = Field(default_factory=TransactionSearchFilters)
+
+
+class TransactionSearchHit(BaseModel):
+    score: float
+    point_id: str
+    doc_id: str
+
+    transaction_id: str
+    transaction_type: str
+    account_id: str
+    category_id: str
+    category: str
+    currency: str
+    amount: int
+    date_utc: str
+    doc_type: str = "transaction"
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+
+class TransactionSearchResponse(BaseModel):
+    hits: List[TransactionSearchHit]
