@@ -2,6 +2,8 @@ from datetime import date
 from typing import ClassVar
 from pydantic import BaseModel, Field, model_validator
 
+from rag.schemas.enums import TransactionTypeEnum
+
 
 class TransactionDoc(BaseModel):
     DOC_ID: ClassVar[str] = "doc_id"
@@ -14,14 +16,17 @@ class TransactionDoc(BaseModel):
     CURRENCY: ClassVar[str] = "currency"
     AMOUNT: ClassVar[str] = "amount"
     DATE_UTC: ClassVar[str] = "date_utc"
+    TRANSACTION_TYPE: ClassVar[str] = "transaction_type"
 
-    doc_id: int
+    doc_id: str
     doc_type: str = Field(default="transaction")
     text: str
     user_id: int
     transaction_id: int
+    transaction_type: TransactionTypeEnum
     account_id: int
     category_id: int
+    category: str
     currency: str
     amount: int
     date_utc: date = date.today()
@@ -31,15 +36,22 @@ class TransactionDoc(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def from_transactions(cls, values):
-        direction = "credit" if values.get(cls.AMOUNT) > 0 else "debit"
         text_lines = [
             "TYPE: transaction",
-            f"DIRECTION: {direction}",
+            f"TRANSACTION_TYPE: {values.get(cls.TRANSACTION_TYPE)}",
             f"AMOUNT: {values.get(cls.AMOUNT)}",
             f"CURRENCY: {values.get(cls.CURRENCY)}",
             f"ACCOUNT: {(values.get(cls.ACCOUNT) or '').strip()}",
             f"CATEGORY: {(values.get(cls.CATEGORY) or '').strip()}",
-            f"BOOKED_AT_UTC: {values.get(cls.DATE_UTC).isoformat().replace('+00:00', 'Z')}",
+            f"BOOKED_AT_UTC: {values.get(cls.DATE_UTC)}",
         ]
         values["text"] = " ".join(text_lines)
+        return values
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_doc_id(cls, values):
+        doc_type = values.get(cls.DOC_TYPE)
+        if doc_type == "transaction":
+            values["doc_id"] = f"transaction-{values.get(cls.TRANSACTION_ID)}"
         return values
