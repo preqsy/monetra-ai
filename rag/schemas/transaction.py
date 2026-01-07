@@ -82,7 +82,6 @@ class TransactionSearchHit(BaseModel):
     score: float
     point_id: str
     doc_id: str
-
     transaction_id: str
     transaction_type: str
     account_id: str

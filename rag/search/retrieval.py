@@ -1,10 +1,13 @@
+from collections import Counter
 from pprint import pprint
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from qdrant_client import QdrantClient
+from nl.models import CategoryCandidate
 from rag.embedder import OllamaEmbedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.schemas.transaction import (
+    TransactionSearchFilters,
     TransactionSearchHit,
     TransactionSearchRequest,
     TransactionSearchResponse,
@@ -88,3 +91,60 @@ class Retrieval:
         ]
         pprint(f"Hits: {hit_list}")
         return TransactionSearchResponse(hits=hits)
+
+    def resolve_category_id_from_transactions(
+        self,
+        *,
+        user_id: int,
+        search_text: str,
+        top_k: int,
+        dominance_threshold: float,
+        min_winner_hits: int,
+    ) -> tuple[bool, str | None, List[CategoryCandidate], int]:
+
+        self.indexer.ensure_collection(768)
+        vec = self.embedder.embed(search_text)
+        trans_filter = TransactionSearchFilters()
+        flt = build_transaction_search_filters(user_id=user_id, f=trans_filter)
+
+        results = self.qdrant_client.query_points(
+            collection_name="monetra_collection",
+            query=vec,
+            query_filter=flt,
+            limit=top_k,
+            with_payload=True,
+            with_vectors=False,
+        )
+
+        counts: Counter[str] = Counter()
+        total = 0
+
+        for r in results.points:
+            payload: Dict[str, Any] = r.payload or {}
+
+            if payload.get("user_id") != user_id:
+                continue
+
+            category_id = payload.get("category_id")
+
+            if not category_id:
+                continue
+
+            counts[category_id] += 1
+            total += 1
+
+        if total == 0 or not counts:
+            return False, None, [], 0
+
+        ranked = counts.most_common()
+        candidates: List[CategoryCandidate] = [
+            CategoryCandidate(category_id=category_id, hits=hits, share=hits / total)
+            for category_id, hits in ranked[:5]
+        ]
+        winner_id, winner_hits = ranked[0]
+        winner_share = winner_hits / total
+        resolved = (winner_hits >= min_winner_hits) and (
+            winner_share >= dominance_threshold
+        )
+
+        return resolved, (winner_id if resolved else None), candidates, total
