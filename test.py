@@ -4,9 +4,10 @@ from datetime import date
 from qdrant_client import QdrantClient
 
 from rag.embedder import OllamaEmbedder
-from rag.models import TransactionDoc
+from rag.schemas.transaction import TransactionDoc, TransactionSearchRequest
 from rag.qdrant_indexer import QdrantIndexer
 from rag.qdrant_retrieval import QdrantRetriever
+from rag.search.retrieval import Retrieval
 
 
 def main():
@@ -19,23 +20,30 @@ def main():
     embedder = OllamaEmbedder()
     indexer = QdrantIndexer(qdrant_client=qdrant_client, embedder=embedder)
     retriever = QdrantRetriever(qdrant_client=qdrant_client, embedder=embedder)
+    retrieval = Retrieval(
+        indexer=indexer, qdrant_client=qdrant_client, embedder=embedder
+    )
+    req = TransactionSearchRequest(user_id=4, query=query)
+    retrieval.search_transactions(req)
 
     random_doc_id = random.randint(1, 1000)
     random_user_id = random.randint(1, 1000)
-    doc = TransactionDoc(
-        doc_id=random_doc_id,
-        doc_type="transaction",
-        text="Hello world",
-        user_id=random_user_id,
-        transaction_id=10,
-        account_id=4,
-        category_id=90,
-        currency="USD",
-        amount=1000,
-        date_utc=date.today(),
-    )
+    # doc = TransactionDoc(
+    #     doc_id=random_doc_id,
+    #     doc_type="transaction",
+    #     text="Hello world",
+    #     user_id=random_user_id,
+    #     transaction_id=10,
+    #     account_id=4,
+    #     category_id=90,
+    #     currency="USD",
+    #     amount=1000,
+    #     date_utc=date.today(),
+    #     transaction_type="expense",
+    #     category="Food & Dining",
+    # )
     # indexer.index_document(doc)
-    retriever.retrieve_documents(query=query)
+    # retriever.retrieve_documents(query=query)
 
 
 main()
