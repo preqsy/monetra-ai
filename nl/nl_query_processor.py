@@ -20,7 +20,7 @@ class NLQueryResolver:
             base_url="http://localhost:11434",
             temperature=temperature,
             additional_kwargs={"num_ctx": 2048, "num_predict": 128},
-            request_timeout=60.0,
+            request_timeout=600.0,
         )
         self.retriever = retriever
 
@@ -107,9 +107,17 @@ class NLQueryResolver:
         amount: int,
         category: str,
         currency: str,
-    ) -> str:
-        raw = self.llm.complete(
-            prompt=f"{PRICE_FORMAT_PROMPT} \n\nAMOUNT: {json.dumps(amount)} CATEGORY: {json.dumps(category)} CURRENCY: {json.dumps(currency)}"
-        ).text
+    ):
+        prompt = (
+            f"{PRICE_FORMAT_PROMPT}\n\n"
+            f"AMOUNT: {json.dumps(amount)} "
+            f"CATEGORY: {json.dumps(category)} "
+            f"CURRENCY: {json.dumps(currency)}"
+        )
 
-        return raw
+        for chunk in self.llm.stream_complete(prompt=prompt):
+            delta = getattr(chunk, "delta", None)
+            if delta:
+                yield delta
+            else:
+                yield chunk.text

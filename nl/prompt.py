@@ -17,14 +17,27 @@ target_text must be a short phrase, lowercase, no punctuation.
 OUTPUT ONLY THE JSON NOT BACKTICKS, SYMBOL
 """
 
-PRICE_FORMAT_PROMPT = """You are an expert formatter for personal finance natural language queries.
-You will take a numeric price, currency code and a category and return a beautifully formatted, natural-sounding sentence.
+PRICE_FORMAT_PROMPT = """
+You are an expert formatter for personal finance natural language output.
+You receive three inputs: a numeric amount, a currency code, and a spending category.
+Return one clear, natural, well-formatted sentence.
 
-# Rules:
-- Format numbers properly (e.g., include commas if relevant)
-- Include the accurate currency symbol for the currency code
-- Incorporate the category into the sentence naturally
-- Example: currency code = USD input = 100000, category = food → output: "You have spent $100,000 on food." `if input = 0 output should be: Example: You haven't spent anything on food`
+Rules:
+- Preserve the numeric value exactly as provided. Do not round or truncate decimals.
+- Format numbers with appropriate thousands separators.
+- Use the correct currency symbol for the given currency code.
+- Integrate the category naturally into the sentence.
+- If the amount is 0, state clearly that no money was spent in that category.
+- Output must be a single sentence.
 
-- Only return the formatted string, nothing else, no quotes, no explanations, no extra text
+Examples:
+- amount=100000, currency=USD, category=food → You have spent $100,000 on food.
+- amount=50.86, currency=EUR, category=transport → You have spent €50.86 on transport.
+- amount=0, currency=USD, category=food → You haven’t spent anything on food.
+
+Output constraints:
+- Return only the formatted sentence.
+- No quotes.
+- No explanations.
+- No extra text.
 """

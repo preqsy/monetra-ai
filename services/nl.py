@@ -1,6 +1,8 @@
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
+from fastapi.concurrency import iterate_in_threadpool
+from fastapi.responses import StreamingResponse
 from qdrant_client import QdrantClient
 from starlette.concurrency import run_in_threadpool
 from nl.models import NLResolveRequest
@@ -40,6 +42,22 @@ class NLService:
             amount=data_obj.amount,
             category=data_obj.category,
             currency=data_obj.currency,
+        )
+
+    async def format_price_with_category_stream(self, data_obj: "PriceFormat"):
+        stream = self.llm.format_price_query(
+            amount=data_obj.amount,
+            category=data_obj.category,
+            currency=data_obj.currency,
+        )
+
+        def sse_wrap():
+            for token in stream:
+                yield f"data: {token}\n\n"
+
+        return StreamingResponse(
+            iterate_in_threadpool(sse_wrap()),
+            media_type="text/event-stream",
         )
 
 

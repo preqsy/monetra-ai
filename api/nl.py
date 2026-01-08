@@ -14,9 +14,9 @@ async def resolve_nl_query(
     return await nl_service.resolve_user_query(data_obj)
 
 
-@router.post("/format-price")
+@router.post("/format")
 async def format_price_with_category(
     data_obj: PriceFormat,
     nl_service: NLService = Depends(get_nl_service),
 ):
-    return await nl_service.format_price_with_category(data_obj)
+    return await nl_service.format_price_with_category_stream(data_obj)
