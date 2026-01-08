@@ -1,6 +1,6 @@
 from pprint import pprint
 from qdrant_client import QdrantClient
-from nl.llm_parse import LLMParse
+from nl.nl_query_processor import NLQueryResolver
 from nl.models import NLResolveRequest
 from rag.embedder import OllamaEmbedder
 from rag.qdrant_indexer import QdrantIndexer
@@ -16,14 +16,12 @@ def main():
     retrieval = Retrieval(
         indexer=indexer, qdrant_client=qdrant_client, embedder=embedder
     )
-    llm = LLMParse(retriever=retrieval)
+    llm = NLQueryResolver(retriever=retrieval)
 
     req = NLResolveRequest(
         user_id=4,
-        query="how much did i spend on dinner",
+        query="how much did i spend on business",
         top_k=25,
-        dominance_threshold=0.40,
-        min_winner_hits=4,
     )
 
     res = llm.resolve_nl(req=req)

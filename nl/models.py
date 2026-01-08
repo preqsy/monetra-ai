@@ -16,25 +16,11 @@ class NLParse(BaseModel):
     target_text: str = Field(min_length=1, max_length=120)
 
 
-class CategoryCandidate(BaseModel):
-    category_id: int
-    category: str = Field(default="")
-    hits: int = Field(ge=0)
-    share: float = Field(ge=0.0, le=1.0)
-
-    avg_hit_score: float = Field(ge=0.0)
-    lexical_match: float = Field(ge=0.0)
-    name_sim: float = Field(ge=0.0)
-    final_score: float = Field(ge=0.0)
-
-
 class NLResolveRequest(BaseModel):
     user_id: int
     query: str = Field(min_length=1, max_length=500)
 
     top_k: int = Field(default=25, ge=5, le=100)
-    dominance_threshold: float = Field(default=0.40, ge=0.1, le=0.95)
-    min_winner_hits: int = Field(default=4, ge=1, le=50)
 
 
 class TransactionObj(BaseModel):

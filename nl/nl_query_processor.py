@@ -7,7 +7,7 @@ from nl.prompt import SYSTEM_PROMPT
 from rag.search.retrieval import Retrieval
 
 
-class LLMParse:
+class NLQueryResolver:
     def __init__(
         self,
         retriever: Retrieval,
