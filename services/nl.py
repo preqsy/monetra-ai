@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from qdrant_client import QdrantClient
+from starlette.concurrency import run_in_threadpool
 from nl.models import NLResolveRequest
 from nl.nl_query_processor import NLQueryResolver
 from rag.embedder import OllamaEmbedder
@@ -29,12 +30,13 @@ class NLService:
 
     async def resolve_user_query(self, data_obj: "NLRequest"):
         req = NLResolveRequest(**data_obj.model_dump())
-        rsp = self.llm.resolve_nl(req)
+        rsp = await run_in_threadpool(self.llm.resolve_nl, req)
 
         return rsp
 
     async def format_price_with_category(self, data_obj: "PriceFormat"):
-        return self.llm.format_price_query(
+        return await run_in_threadpool(
+            self.llm.format_price_query,
             amount=data_obj.amount,
             category=data_obj.category,
             currency=data_obj.currency,
