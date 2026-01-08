@@ -43,13 +43,13 @@ class LLMParse:
         clean = self.extract_json(raw)
         data = json.loads(clean)
 
-        parsed = NLParse.model_validate(data)
-        # parsed = NLParse(**data)
+        # parsed = NLParse.model_validate(data)
+        parsed = NLParse(**data)
         # print(f"Parsed: {parsed}")
-        # try:
-        #     parsed = NLParse.model_validate(data)
-        # except ValidationError as e:
-        #     raise ValueError(f"NLParse validation failed: {e}") from e
+        try:
+            parsed = NLParse.model_validate(data)
+        except ValidationError as e:
+            raise ValueError(f"NLParse validation failed: {e}") from e
 
         parsed.target_text = parsed.target_text.strip().lower()
         return parsed
@@ -83,39 +83,20 @@ class LLMParse:
 
         search_text = parsed.target_text if parsed.target_kind != "unknown" else query
 
-        resolved_category = False
-        category_id = None
-        candidates = []
-        total = 0
+        print(f"**** Search text: {search_text}")
+
+        data_dict = {}
 
         if parsed.target_kind == "category":
-            resolved_category, category_id, candidates, total = (
-                self.retriever.resolve_category_id_from_transactions(
-                    user_id=user_id,
-                    search_text=search_text,
-                    top_k=req.top_k,
-                    dominance_threshold=req.dominance_threshold,
-                    min_winner_hits=req.min_winner_hits,
-                )
+            data = self.retriever.resolve_category_id_from_transactions(
+                user_id=user_id,
+                search_text=search_text,
             )
-        else:
-            # Minimal: only category resolution in v1
-            total = 0
+            data_dict = data
 
         return NLResolveResult(
+            **data_dict,
             ok=True,
+            total_hits_considered=1,
             parse=parsed,
-            resolved_category=resolved_category,
-            category_id=category_id,
-            category_candidates=candidates,
-            total_hits_considered=total,
-            error=(
-                None
-                if resolved_category
-                else (
-                    "Category not confidently resolved"
-                    if parsed.target_kind == "category"
-                    else "Non-category query in v1"
-                )
-            ),
         )

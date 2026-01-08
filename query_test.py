@@ -20,7 +20,7 @@ def main():
 
     req = NLResolveRequest(
         user_id=4,
-        query="how much did i spend on food",
+        query="how much did i spend on dinner",
         top_k=25,
         dominance_threshold=0.40,
         min_winner_hits=4,
@@ -29,6 +29,7 @@ def main():
     res = llm.resolve_nl(req=req)
 
     pprint(f"NL Response: {res.model_dump()}")
+    # pprint(f"NL Response: {res.model_dump()}")
 
 
 main()

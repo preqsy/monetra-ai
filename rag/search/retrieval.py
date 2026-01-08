@@ -1,9 +1,8 @@
-from collections import Counter
+from collections import defaultdict
 from pprint import pprint
 from typing import Any, Dict, List
 
 from qdrant_client import QdrantClient
-from nl.models import CategoryCandidate
 from rag.embedder import OllamaEmbedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.schemas.transaction import (
@@ -92,59 +91,136 @@ class Retrieval:
         pprint(f"Hits: {hit_list}")
         return TransactionSearchResponse(hits=hits)
 
+    def _consine(self, a: List[float], b: List[float]) -> float:
+        import math
+
+        dot = 0.0
+        na = 0.0
+        nb = 0.0
+
+        for x, y in zip(a, b):
+            dot += x * y
+            na += x * x
+            nb += y * y
+
+        if na == 0.0 or nb == 0.0:
+            return 0.0
+        return dot / (math.sqrt(na) * math.sqrt(nb))
+
+    def _norm(self, s: Any) -> str:
+        return str(s or "").strip().lower()
+
     def resolve_category_id_from_transactions(
         self,
         *,
         user_id: int,
         search_text: str,
-        top_k: int,
-        dominance_threshold: float,
-        min_winner_hits: int,
-    ) -> tuple[bool, str | None, List[CategoryCandidate], int]:
+        category_sim_threshold: float = 0.65,
+        min_kept: int = 3,
+        top_k: int = 50,
+    ) -> Dict[str, Any]:
+        """
+        - Retrieve top-k matching transactions (vector search)
+        - Aggregate by category_id
+        - Validate category label alginment using payload["category"] against search_text
+            lexical match + embedding similarity
+        - Select winner by combined score + threshold
+
+        Returns:
+        (Resolved, winner_category_id, top_candidates, total_hits_considered)
+        """
+
+        search_text = search_text.strip().lower()
+
+        if not user_id or not search_text:
+            return {
+                "kept": [],
+                "discarded": [],
+                "best_category_id": None,
+                "category_scores": [],
+            }
 
         self.indexer.ensure_collection(768)
-        vec = self.embedder.embed(search_text)
+        query_vec = self.embedder.embed(search_text)
         trans_filter = TransactionSearchFilters()
         flt = build_transaction_search_filters(user_id=user_id, f=trans_filter)
 
         results = self.qdrant_client.query_points(
             collection_name="monetra_collection",
-            query=vec,
+            query=query_vec,
             query_filter=flt,
             limit=top_k,
             with_payload=True,
             with_vectors=False,
         )
 
-        counts: Counter[str] = Counter()
-        total = 0
+        cat_vec_cache: Dict[str, List[float]] = {}
+        kept = []
+        discarded = []
 
-        for r in results.points:
+        for idx, r in enumerate(results.points):
             payload: Dict[str, Any] = r.payload or {}
 
             if payload.get("user_id") != user_id:
                 continue
 
-            category_id = payload.get("category_id")
+            cat_id = payload.get("category_id")
+            cat_label = self._norm(payload.get("category"))
+            txn_id = payload.get("transaction_id")
 
-            if not category_id:
+            if not cat_label or cat_id is None or txn_id is None:
+                discarded.append(
+                    {"payload": payload, "hit_score": float(r.score), "cat_sim": 0.0}
+                )
                 continue
 
-            counts[category_id] += 1
-            total += 1
+            if cat_label not in cat_vec_cache:
+                cat_vec_cache[cat_label] = self.embedder.embed(cat_label)
 
-        if total == 0 or not counts:
-            return False, None, [], 0
+            cat_sim = self._consine(query_vec, cat_vec_cache[cat_label])
+            cat_sim = max(0.0, min(1.0, float(cat_sim)))
 
-        ranked = counts.most_common()
-        candidates: List[CategoryCandidate] = [
-            CategoryCandidate(category_id=category_id, hits=hits, share=hits / total)
-            for category_id, hits in ranked[:5]
+            row = {
+                "transaction_id": txn_id,
+                "category_id": cat_id,
+                "hit_score": float(r.score),
+                "cat_sim": cat_sim,
+                "payload": payload,
+                "category": cat_label,
+            }
+
+            if cat_sim >= category_sim_threshold:
+                kept.append(row)
+
+            else:
+                discarded.append(row)
+
+        evidence_by_cat: Dict[str, float] = defaultdict(float)
+        label_by_cat = {}
+
+        for row in kept:
+            cid = row["category_id"]
+            evidence_by_cat[cid] += row["hit_score"] * row["cat_sim"]
+            label_by_cat[cid] = row["category"]
+
+        category_scores = [
+            {
+                "category_id": cid,
+                "category": label_by_cat.get(cid, ""),
+                "evidence": float(ev),
+            }
+            for cid, ev in evidence_by_cat.items()
         ]
-        winner_id, winner_hits = ranked[0]
-        winner_share = winner_hits / total
-        resolved = (winner_hits >= min_winner_hits) and (
-            winner_share >= dominance_threshold
-        )
 
-        return resolved, (winner_id if resolved else None), candidates, total
+        category_scores.sort(key=lambda x: x["evidence"], reverse=True)
+        best_category_id = (
+            category_scores[0]["category_id"] if category_scores else None
+        )
+        kept.sort(key=lambda x: (x["cat_sim"], x["hit_score"]), reverse=True)
+
+        return {
+            "resolved_candidates": kept,
+            "discarded_candidates": discarded,
+            "resolved_category_id": best_category_id,
+            "category_scores": category_scores[:5],
+        }
