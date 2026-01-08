@@ -108,6 +108,7 @@ class NLQueryResolver:
         category: str,
         currency: str,
     ):
+        print(f"Amount: {amount}")
         prompt = (
             f"{PRICE_FORMAT_PROMPT}\n\n"
             f"AMOUNT: {json.dumps(amount)} "
@@ -115,9 +116,25 @@ class NLQueryResolver:
             f"CURRENCY: {json.dumps(currency)}"
         )
 
+        streamed = ""
         for chunk in self.llm.stream_complete(prompt=prompt):
             delta = getattr(chunk, "delta", None)
             if delta:
+                streamed += delta
                 yield delta
-            else:
-                yield chunk.text
+                continue
+
+            text = getattr(chunk, "text", None)
+            if not text:
+                continue
+
+            if text.startswith(streamed):
+                remainder = text[len(streamed) :]
+                if remainder:
+                    yield remainder
+                streamed = text
+                continue
+
+            if text != streamed:
+                yield text
+                streamed = text

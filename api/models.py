@@ -7,6 +7,6 @@ class NLRequest(BaseModel):
 
 
 class PriceFormat(BaseModel):
-    amount: int
+    amount: int | float
     category: str
     currency: str
