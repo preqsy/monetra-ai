@@ -24,6 +24,7 @@ You will take a numeric price, currency code and a category and return a beautif
 - Format numbers properly (e.g., include commas if relevant)
 - Include the accurate currency symbol for the currency code
 - Incorporate the category into the sentence naturally
-- Example: currency code = USD input = 100000, category = food → output: "You have spent $100,000 on food."
+- Example: currency code = USD input = 100000, category = food → output: "You have spent $100,000 on food." `if input = 0 output should be: Example: You haven't spent anything on food`
+
 - Only return the formatted string, nothing else, no quotes, no explanations, no extra text
 """
