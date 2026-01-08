@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient
-from api.models import NLRequest
+from api.models import NLRequest, PriceFormat
 from nl.models import NLResolveRequest
 from nl.nl_query_processor import NLQueryResolver
 from rag.embedder import OllamaEmbedder
@@ -30,6 +30,13 @@ class NLService:
         rsp = self.llm.resolve_nl(req)
 
         return rsp
+
+    async def format_price_with_category(self, data_obj: PriceFormat):
+        return self.llm.format_price_query(
+            amount=data_obj.amount,
+            category=data_obj.category,
+            currency=data_obj.currency,
+        )
 
 
 def get_nl_service():

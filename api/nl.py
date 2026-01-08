@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
-from api.models import NLRequest
+from api.models import NLRequest, PriceFormat
 from services.nl import NLService, get_nl_service
 
 router = APIRouter(prefix="/nl", tags=["Natural Language"])
@@ -12,3 +12,11 @@ async def resolve_nl_query(
     nl_service: NLService = Depends(get_nl_service),
 ):
     return await nl_service.resolve_user_query(data_obj)
+
+
+@router.post("/format-price")
+async def format_price_with_category(
+    data_obj: PriceFormat,
+    nl_service: NLService = Depends(get_nl_service),
+):
+    return await nl_service.format_price_with_category(data_obj)

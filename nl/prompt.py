@@ -16,3 +16,14 @@ Extract target_kind and target_text:
 target_text must be a short phrase, lowercase, no punctuation.
 OUTPUT ONLY THE JSON NOT BACKTICKS, SYMBOL
 """
+
+PRICE_FORMAT_PROMPT = """You are an expert formatter for personal finance natural language queries.
+You will take a numeric price, currency code and a category and return a beautifully formatted, natural-sounding sentence.
+
+# Rules:
+- Format numbers properly (e.g., include commas if relevant)
+- Include the accurate currency symbol for the currency code
+- Incorporate the category into the sentence naturally
+- Example: currency code = USD input = 100000, category = food → output: "You have spent $100,000 on food."
+- Only return the formatted string, nothing else, no quotes, no explanations, no extra text
+"""

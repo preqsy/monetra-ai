@@ -3,7 +3,7 @@ from llama_index.llms.ollama import Ollama
 from pydantic import ValidationError
 
 from nl.models import NLParse, NLResolveRequest, NLResolveResult
-from nl.prompt import SYSTEM_PROMPT
+from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
 from rag.search.retrieval import Retrieval
 
 
@@ -11,7 +11,8 @@ class NLQueryResolver:
     def __init__(
         self,
         retriever: Retrieval,
-        model: str = "Qwen2.5:7b",
+        model: str = "llama3.2:3b",
+        # model: str = "Qwen2.5:7b",
         temperature: float = 0.0,
     ) -> None:
         self.llm = Ollama(
@@ -36,7 +37,7 @@ class NLQueryResolver:
             raise ValueError("Empty query")
 
         raw = self.llm.complete(
-            prompt=f"{SYSTEM_PROMPT}\n\nUSER_QURY: {json.dumps(q)}"
+            prompt=f"{SYSTEM_PROMPT}\n\nUSER_QUERY: {json.dumps(q)}"
         ).text
 
         print(f"LLM data response: {raw}")
@@ -100,3 +101,15 @@ class NLQueryResolver:
             total_hits_considered=1,
             parse=parsed,
         )
+
+    def format_price_query(
+        self,
+        amount: int,
+        category: str,
+        currency: str,
+    ) -> str:
+        raw = self.llm.complete(
+            prompt=f"{PRICE_FORMAT_PROMPT} \n\nAMOUNT: {json.dumps(amount)} CATEGORY: {json.dumps(category)} CURRENCY: {json.dumps(currency)}"
+        ).text
+
+        return raw
