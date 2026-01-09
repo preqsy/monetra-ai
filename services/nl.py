@@ -1,6 +1,7 @@
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
+from fastapi import Query
 from fastapi.responses import StreamingResponse
 from qdrant_client import QdrantClient
 from nl.models import NLResolveRequest
@@ -11,8 +12,11 @@ from rag.search.retrieval import Retrieval
 
 
 class NLService:
+
     def __init__(
         self,
+        llm_provider: str,
+        temperature: float = 0.5,
     ) -> None:
         self.qdrant_client = QdrantClient(url="localhost:6333")
         self.embedder = OllamaEmbedder()
@@ -26,7 +30,9 @@ class NLService:
             qdrant_client=self.qdrant_client,
         )
 
-        self.llm = NLQueryResolver(retriever=self.retriever)
+        self.llm = NLQueryResolver(
+            retriever=self.retriever, temperature=temperature, llm_provider=llm_provider
+        )
 
     async def resolve_user_query(self, data_obj: "NLRequest"):
         req = NLResolveRequest(**data_obj.model_dump())
@@ -59,9 +65,12 @@ class NLService:
         )
 
 
+LLM_PROVIDER = Literal["groq", "ollama"]
+
+
 @lru_cache(maxsize=1)
-def get_nl_service():
-    return NLService()
+def get_nl_service(llm_provider: LLM_PROVIDER = Query()):
+    return NLService(llm_provider=llm_provider)
 
 
 if TYPE_CHECKING:

@@ -12,6 +12,7 @@ class GroqProvider(LLMProvider):
     def __init__(
         self,
         # model: str = "llama-3.1-70b-versatile",
+        temperature: float,
         model: str = "llama-3.1-8b-instant",
     ) -> None:
         self.llm = AsyncOpenAI(
@@ -19,6 +20,7 @@ class GroqProvider(LLMProvider):
             base_url="https://api.groq.com/openai/v1",
         )
         self.model = model
+        self.temperature = temperature
 
     async def chat(self, query: str, prompt: str) -> ChatResult:
         query = query.strip()
@@ -31,8 +33,9 @@ class GroqProvider(LLMProvider):
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": query},
             ],
+            temperature=self.temperature,
         )
-        print(f"OpenAI Response: {response}")
+        # print(f"OpenAI Response: {response}")
         text = response.choices[0].message.content
         return ChatResult(text=text, metadata={"model": response.model})
 
@@ -43,4 +46,5 @@ class GroqProvider(LLMProvider):
                 {"role": "system", "content": prompt},
             ],
             stream=True,
+            temperature=self.temperature,
         )

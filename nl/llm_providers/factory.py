@@ -3,13 +3,10 @@ from nl.llm_providers.groq_provider import GroqProvider
 from nl.llm_providers.ollama_provider import OllamaProvider
 
 
-KIND = "ollama"
-
-
-def get_llm_provider() -> LLMProvider:
-    if KIND == "ollama":
-        return OllamaProvider()
-    elif KIND == "groq":
-        return GroqProvider()
+def get_llm_provider(temperature: float, llm_provider: str = "ollama") -> LLMProvider:
+    if llm_provider == "ollama":
+        return OllamaProvider(temperature=temperature)
+    elif llm_provider == "groq":
+        return GroqProvider(temperature=temperature)
     else:
-        return OllamaProvider()
+        return OllamaProvider(temperature=temperature)

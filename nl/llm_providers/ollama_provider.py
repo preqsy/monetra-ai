@@ -5,11 +5,16 @@ from llama_index.llms.ollama import Ollama
 
 class OllamaProvider(LLMProvider):
 
-    def __init__(self, *, model: str = "Qwen2.5:7b"):
+    def __init__(
+        self,
+        *,
+        temperature: float,
+        model: str = "Qwen2.5:7b",
+    ):
         self.llm = Ollama(
             model=model,
             base_url="http://localhost:11434",
-            temperature=0.1,
+            temperature=temperature,
             additional_kwargs={
                 "num_ctx": 2048,
                 "num_predict": 128,

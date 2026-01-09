@@ -1,3 +1,4 @@
+import inspect
 import json
 from llama_index.llms.ollama import Ollama
 from pydantic import ValidationError
@@ -12,18 +13,10 @@ class NLQueryResolver:
     def __init__(
         self,
         retriever: Retrieval,
-        model: str = "llama3.2:3b",
-        # model: str = "Qwen2.5:7b",
-        temperature: float = 0.0,
+        llm_provider: str,
+        temperature: float = 0.5,
     ) -> None:
-        self.llm = get_llm_provider()
-        # self.llm = Ollama(
-        #     model=model,
-        #     base_url="http://localhost:11434",
-        #     temperature=temperature,
-        #     additional_kwargs={"num_ctx": 2048, "num_predict": 128},
-        #     request_timeout=60.0,
-        # )
+        self.llm = get_llm_provider(temperature=temperature, llm_provider=llm_provider)
         self.retriever = retriever
 
     def extract_json(self, text: str) -> str:
@@ -112,7 +105,9 @@ class NLQueryResolver:
 
         streamed = ""
         stream = await self.llm.stream(prompt=prompt)
-        for chunk in stream:
+        if inspect.isawaitable(stream):
+            stream = await stream
+        async for chunk in stream:
             delta = getattr(chunk, "delta", None)
             if delta:
                 streamed += delta
