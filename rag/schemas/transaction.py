@@ -64,7 +64,6 @@ class TransactionSearchFilters(BaseModel):
     account_id: Optional[str] = None
     category_id: Optional[str] = None
     currency: Optional[str] = None
-    is_transfer: Optional[bool] = None
 
     # epoch seconds in UTC
     date_from_utc: Optional[int] = Field(default=None, ge=0)
@@ -82,7 +81,6 @@ class TransactionSearchHit(BaseModel):
     score: float
     point_id: str
     doc_id: str
-
     transaction_id: str
     transaction_type: str
     account_id: str

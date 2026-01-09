@@ -4,6 +4,7 @@ from qdrant_client.http.models import VectorParams, Distance, PointStruct
 
 from rag.embedder import OllamaEmbedder
 from rag.schemas.transaction import TransactionDoc
+from config import settings
 
 
 class QdrantIndexer:
@@ -16,13 +17,13 @@ class QdrantIndexer:
         self.embedder = embedder
         self.DOC_ID_NAMESPACE = uuid.UUID("4b1f7a2e-3c2b-4b2f-9c8a-8d8f5b2f9d10")
 
-    def ensure_collection(self, vector_size: int):
+    def ensure_collection(self, vector_size: int = 768):
         collections = {c.name for c in self.qdrant_client.get_collections().collections}
 
-        if "monetra_collection" in collections:
+        if settings.QDRANT_COLLECTION_NAME in collections:
             return
         self.qdrant_client.create_collection(
-            "monetra_collection",
+            settings.QDRANT_COLLECTION_NAME,
             vectors_config=VectorParams(
                 size=vector_size,
                 distance=Distance.COSINE,
@@ -40,7 +41,7 @@ class QdrantIndexer:
         )
 
         self.qdrant_client.upsert(
-            collection_name="monetra_collection",
+            collection_name=settings.QDRANT_COLLECTION_NAME,
             points=[
                 PointStruct(
                     id=self.qdrant_point_id(doc.doc_id),

@@ -17,7 +17,8 @@ dependencies = [
     "torch (==2.2.2)",
     "llama-index-embeddings-nomic (>=0.7.1,<0.8.0)",
     "llama-index-embeddings-ollama (>=0.8.5,<0.9.0)",
-    "confluent-kafka (>=2.13.0,<3.0.0)"
+    "confluent-kafka (>=2.13.0,<3.0.0)",
+    "openai (>=2.14.0,<3.0.0)"
 ]
 
 
