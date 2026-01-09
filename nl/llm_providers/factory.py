@@ -3,7 +3,7 @@ from nl.llm_providers.groq_provider import GroqProvider
 from nl.llm_providers.ollama_provider import OllamaProvider
 
 
-KIND = "groq"
+KIND = "ollama"
 
 
 def get_llm_provider() -> LLMProvider:

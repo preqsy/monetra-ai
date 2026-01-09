@@ -23,7 +23,7 @@ class LLMProvider(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def stream(
+    async def stream(
         self,
         prompt: str,
     ):

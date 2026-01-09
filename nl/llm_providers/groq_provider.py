@@ -11,6 +11,7 @@ class GroqProvider(LLMProvider):
 
     def __init__(
         self,
+        # model: str = "llama-3.1-70b-versatile",
         model: str = "llama-3.1-8b-instant",
     ) -> None:
         self.llm = AsyncOpenAI(
@@ -33,7 +34,13 @@ class GroqProvider(LLMProvider):
         )
         print(f"OpenAI Response: {response}")
         text = response.choices[0].message.content
-        return ChatResult(text=text)
+        return ChatResult(text=text, metadata={"model": response.model})
 
-    def stream(self, prompt: str):
-        return self.llm.api_key
+    async def stream(self, prompt: str):
+        return await self.llm.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": prompt},
+            ],
+            stream=True,
+        )

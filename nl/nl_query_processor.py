@@ -96,7 +96,7 @@ class NLQueryResolver:
             parse=parsed,
         )
 
-    def format_price_query(
+    async def format_price_query(
         self,
         amount: int,
         category: str,
@@ -111,7 +111,8 @@ class NLQueryResolver:
         )
 
         streamed = ""
-        for chunk in self.llm.stream(prompt=prompt):
+        stream = await self.llm.stream(prompt=prompt)
+        for chunk in stream:
             delta = getattr(chunk, "delta", None)
             if delta:
                 streamed += delta
@@ -119,16 +120,24 @@ class NLQueryResolver:
                 continue
 
             text = getattr(chunk, "text", None)
-            if not text:
+            if text:
+                if text.startswith(streamed):
+                    remainder = text[len(streamed) :]
+                    if remainder:
+                        yield remainder
+                    streamed = text
+                    continue
+
+                if text != streamed:
+                    yield text
+                    streamed = text
                 continue
 
-            if text.startswith(streamed):
-                remainder = text[len(streamed) :]
-                if remainder:
-                    yield remainder
-                streamed = text
-                continue
-
-            if text != streamed:
-                yield text
-                streamed = text
+            choices = getattr(chunk, "choices", None)
+            if choices:
+                choice = choices[0]
+                choice_delta = getattr(choice, "delta", None)
+                content = getattr(choice_delta, "content", None)
+                if content:
+                    streamed += content
+                    yield content

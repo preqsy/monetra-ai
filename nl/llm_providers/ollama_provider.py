@@ -34,8 +34,8 @@ class OllamaProvider(LLMProvider):
 
         return ChatResult(text=data)
 
-    def stream(
+    async def stream(
         self,
         prompt: str,
     ):
-        return self.llm.stream_complete(prompt)
+        return self.llm.astream_complete(prompt)
