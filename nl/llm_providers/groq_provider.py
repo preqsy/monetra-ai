@@ -2,9 +2,9 @@ import json
 from typing import Sequence
 from nl.llm_providers.base import ChatMessage, ChatResult, LLMProvider
 
-# from llama_index.llms.openai import OpenAI
 from openai import AsyncOpenAI
 from nl.prompt import SYSTEM_PROMPT
+from config import settings
 
 
 class GroqProvider(LLMProvider):
@@ -16,7 +16,7 @@ class GroqProvider(LLMProvider):
         model: str = "llama-3.1-8b-instant",
     ) -> None:
         self.llm = AsyncOpenAI(
-            api_key="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",
+            api_key=settings.GROQ_API_KEY,
             base_url="https://api.groq.com/openai/v1",
         )
         self.model = model
