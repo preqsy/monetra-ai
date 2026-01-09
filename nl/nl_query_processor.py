@@ -2,6 +2,7 @@ import json
 from llama_index.llms.ollama import Ollama
 from pydantic import ValidationError
 
+from nl.llm_providers.factory import get_llm_provider
 from nl.models import NLParse, NLResolveRequest, NLResolveResult
 from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
 from rag.search.retrieval import Retrieval
@@ -15,38 +16,33 @@ class NLQueryResolver:
         # model: str = "Qwen2.5:7b",
         temperature: float = 0.0,
     ) -> None:
-        self.llm = Ollama(
-            model=model,
-            base_url="http://localhost:11434",
-            temperature=temperature,
-            additional_kwargs={"num_ctx": 2048, "num_predict": 128},
-            request_timeout=60.0,
-        )
+        self.llm = get_llm_provider()
+        # self.llm = Ollama(
+        #     model=model,
+        #     base_url="http://localhost:11434",
+        #     temperature=temperature,
+        #     additional_kwargs={"num_ctx": 2048, "num_predict": 128},
+        #     request_timeout=60.0,
+        # )
         self.retriever = retriever
 
     def extract_json(self, text: str) -> str:
         text = text.strip()
         if text.startswith("```"):
-            # remove ```json or ``` and trailing ```
             text = text.split("```", 2)[1]
         return text.strip()
 
-    def parse_query_llm(self, query: str) -> NLParse:
+    async def parse_query_llm(self, query: str) -> NLParse:
         q = query.strip()
         if not q:
             raise ValueError("Empty query")
 
-        raw = self.llm.complete(
-            prompt=f"{SYSTEM_PROMPT}\n\nUSER_QUERY: {json.dumps(q)}"
-        ).text
+        raw = await self.llm.chat(query=q, prompt=SYSTEM_PROMPT)
 
-        print(f"LLM data response: {raw}")
-        clean = self.extract_json(raw)
+        print(f"LLM data response: {raw.text}")
+        clean = self.extract_json(raw.text)
         data = json.loads(clean)
 
-        # parsed = NLParse.model_validate(data)
-        parsed = NLParse(**data)
-        # print(f"Parsed: {parsed}")
         try:
             parsed = NLParse.model_validate(data)
         except ValidationError as e:
@@ -55,7 +51,7 @@ class NLQueryResolver:
         parsed.target_text = parsed.target_text.strip().lower()
         return parsed
 
-    def resolve_nl(self, req: NLResolveRequest) -> NLResolveResult:
+    async def resolve_nl(self, req: NLResolveRequest) -> NLResolveResult:
         user_id = req.user_id
         query = req.query.strip()
 
@@ -71,11 +67,9 @@ class NLQueryResolver:
                 total_hits_considered=0,
                 error="query required",
             )
-        # parsed = self.parse_query_llm(query)
         try:
-            parsed = self.parse_query_llm(query)
+            parsed = await self.parse_query_llm(query)
         except Exception as e:
-            # print(f"Parsed: {parsed}")
             return NLResolveResult(
                 ok=False,
                 total_hits_considered=0,
@@ -117,7 +111,7 @@ class NLQueryResolver:
         )
 
         streamed = ""
-        for chunk in self.llm.stream_complete(prompt=prompt):
+        for chunk in self.llm.stream(prompt=prompt):
             delta = getattr(chunk, "delta", None)
             if delta:
                 streamed += delta
