@@ -20,7 +20,7 @@ class NLQueryResolver:
             base_url="http://localhost:11434",
             temperature=temperature,
             additional_kwargs={"num_ctx": 2048, "num_predict": 128},
-            request_timeout=600.0,
+            request_timeout=60.0,
         )
         self.retriever = retriever
 

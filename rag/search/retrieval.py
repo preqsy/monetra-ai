@@ -140,7 +140,7 @@ class Retrieval:
                 "category_scores": [],
             }
 
-        self.indexer.ensure_collection(768)
+        self.indexer.ensure_collection()
         query_vec = self.embedder.embed(search_text)
         trans_filter = TransactionSearchFilters()
         flt = build_transaction_search_filters(user_id=user_id, f=trans_filter)

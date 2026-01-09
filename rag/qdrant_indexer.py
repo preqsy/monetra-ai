@@ -16,7 +16,7 @@ class QdrantIndexer:
         self.embedder = embedder
         self.DOC_ID_NAMESPACE = uuid.UUID("4b1f7a2e-3c2b-4b2f-9c8a-8d8f5b2f9d10")
 
-    def ensure_collection(self, vector_size: int):
+    def ensure_collection(self, vector_size: int = 768):
         collections = {c.name for c in self.qdrant_client.get_collections().collections}
 
         if "monetra_collection" in collections:
