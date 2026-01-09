@@ -10,7 +10,7 @@ from nl.nl_query_processor import NLQueryResolver
 from rag.embedder import OllamaEmbedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.search.retrieval import Retrieval
-
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,9 @@ class NLService:
         llm_provider: str,
         temperature: float = 0.5,
     ) -> None:
-        self.qdrant_client = QdrantClient(url="localhost:6333")
+        self.qdrant_client = QdrantClient(
+            url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
+        )
         self.embedder = OllamaEmbedder()
         self.indexer = QdrantIndexer(
             qdrant_client=self.qdrant_client,

@@ -4,12 +4,14 @@ from consumer import KafkaConsumer
 from rag.embedder import OllamaEmbedder
 from rag.schemas.transaction import TransactionDoc
 from rag.qdrant_indexer import QdrantIndexer
-from rag.qdrant_retrieval import QdrantRetriever
+from config import settings
 
 
 def index_transaction(transaction_data):
 
-    qdrant_client = QdrantClient(url="localhost:6333")
+    qdrant_client = QdrantClient(
+        url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
+    )
     embedder = OllamaEmbedder()
     indexer = QdrantIndexer(qdrant_client=qdrant_client, embedder=embedder)
     # retriever = QdrantRetriever(qdrant_client=qdrant_client, embedder=embedder)
