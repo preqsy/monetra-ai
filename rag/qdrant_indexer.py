@@ -1,6 +1,11 @@
 import uuid
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import VectorParams, Distance, PointStruct
+from qdrant_client.http.models import (
+    VectorParams,
+    Distance,
+    PointStruct,
+    PayloadSchemaType,
+)
 
 from rag.embedder import OllamaEmbedder
 from rag.schemas.transaction import TransactionDoc
@@ -21,6 +26,7 @@ class QdrantIndexer:
         collections = {c.name for c in self.qdrant_client.get_collections().collections}
 
         if settings.QDRANT_COLLECTION_NAME in collections:
+            self.ensure_user_id_index()
             return
         self.qdrant_client.create_collection(
             settings.QDRANT_COLLECTION_NAME,
@@ -28,6 +34,28 @@ class QdrantIndexer:
                 size=vector_size,
                 distance=Distance.COSINE,
             ),
+        )
+        self.ensure_user_id_index()
+
+    def ensure_user_id_index(self) -> None:
+        collection_info = self.qdrant_client.get_collection(
+            settings.QDRANT_COLLECTION_NAME
+        )
+        payload_schema = collection_info.payload_schema or {}
+        if (
+            TransactionDoc.USER_ID in payload_schema
+            and TransactionDoc.DOC_TYPE in payload_schema
+        ):
+            return
+        self.qdrant_client.create_payload_index(
+            collection_name=settings.QDRANT_COLLECTION_NAME,
+            field_name=TransactionDoc.USER_ID,
+            field_schema=PayloadSchemaType.INTEGER,
+        )
+        self.qdrant_client.create_payload_index(
+            collection_name=settings.QDRANT_COLLECTION_NAME,
+            field_name=TransactionDoc.DOC_TYPE,
+            field_schema=PayloadSchemaType.KEYWORD,
         )
 
     def index_document(self, transaction: TransactionDoc):
