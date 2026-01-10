@@ -1,2 +1,8 @@
 .env
 __pycache__
+ca.pem
+service.cert
+service.key
+service.cert.b64
+service.key.b64
+ca.pem.b64
