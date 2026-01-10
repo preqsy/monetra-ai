@@ -62,7 +62,8 @@ class QdrantIndexer:
         doc = transaction
 
         embedded_doc = self.embedder.embed(doc.text)
-        self.ensure_collection(vector_size=len(embedded_doc))
+
+        self.ensure_collection(vector_size=embedded_doc.length)
         payload = doc.model_dump(
             # exclude={"text"},
             mode="json",
@@ -73,7 +74,7 @@ class QdrantIndexer:
             points=[
                 PointStruct(
                     id=self.qdrant_point_id(doc.doc_id),
-                    vector=embedded_doc,
+                    vector=embedded_doc.embeddings,
                     payload=payload,
                 )
             ],
