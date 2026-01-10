@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic_settings import BaseSettings
 
 
@@ -24,7 +25,7 @@ class Settings(BaseSettings):
     BACKEND_HEADER: str = ""
     GROQ_API_KEY: str = ""
     GOOGLE_EM_API_KEY: str = ""
-
+    EMBEDDING_MODEL_PROVIDER: Literal["google", "ollama"] = "ollama"
     KAFKA_CONFIG: KafkaConfig = KafkaConfig()
 
     class Config:
