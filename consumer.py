@@ -12,24 +12,29 @@ def write_temp_file(b64_content):
     return tmp.name
 
 
-ca_path = write_temp_file(settings.KAFKA_PEM)
-cert_path = write_temp_file(settings.KAFKA_SERVICE_CERT)
-key_path = write_temp_file(settings.KAFKA_SERVICE_KEY)
+ca_path = write_temp_file(settings.KAFKA_CONFIG.KAFKA_PEM)
+cert_path = write_temp_file(settings.KAFKA_CONFIG.KAFKA_SERVICE_CERT)
+key_path = write_temp_file(settings.KAFKA_CONFIG.KAFKA_SERVICE_KEY)
+
+kafka_config = {
+    "bootstrap.servers": "localhost:9092",
+    "auto.offset.reset": "earliest",
+    "group.id": "monetra-ai",
+}
+
+if settings.ENVIRONMENT == "prod":
+    kafka_config["bootstrap.servers"] = settings.KAFKA_CONFIG.KAFKA_URL
+    kafka_config["security.protocol"] = "SSL"
+    kafka_config["ssl.ca.location"] = ca_path
+    kafka_config["ssl.certificate.location"] = cert_path
+    kafka_config["ssl.key.location"] = key_path
+
+print(f"Kafka config: {kafka_config}")
 
 
 class KafkaConsumer:
     def __init__(self, topic: str, group_id: str = "monetra-ai") -> None:
-        self.consumer = Consumer(
-            {
-                "bootstrap.servers": settings.KAFKA_URL,
-                "group.id": group_id,
-                "auto.offset.reset": "earliest",
-                "security.protocol": "SSL",
-                "ssl.ca.location": ca_path,
-                "ssl.certificate.location": cert_path,
-                "ssl.key.location": key_path,
-            }
-        )
+        self.consumer = Consumer(kafka_config)
         self.consumer.subscribe([topic])  # <-- subscribe to topic
 
     def consume_message(self, handler):
