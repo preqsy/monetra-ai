@@ -1,13 +1,14 @@
-from llama_index.embeddings.ollama import OllamaEmbedding
+from rag.embedder_providers.base import EmbeddingReturn
+from rag.embedder_providers.factory import get_embedding_model
 
 
 class OllamaEmbedder:
-    def __init__(self, model_name: str = "nomic-embed-text"):
-        self.model_name = model_name
-        self.embed_model = OllamaEmbedding(
-            model_name=self.model_name,
-            base_url="http://localhost:11434",
-        )
 
-    def embed(self, text: str):
-        return self.embed_model.get_text_embedding(text)
+    def __init__(
+        self,
+    ):
+        self.embed_model = get_embedding_model()
+
+    def embed(self, text: str) -> EmbeddingReturn:
+        rsp = self.embed_model.embed(text)
+        return rsp

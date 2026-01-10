@@ -21,16 +21,10 @@ dependencies = [
     "openai (>=2.14.0,<3.0.0)",
 
     # CPU-only Torch
-    "torch==2.2.2"
+    "torch==2.2.2",
+    "numpy (<2)",
+    "google-genai (>=1.57.0,<2.0.0)"
 ]
-
-[tool.poetry.dependencies]
-torch = { version = "2.2.2", source = "pytorch-cpu" }
-
-[[tool.poetry.source]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

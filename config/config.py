@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "nomic-embed-text"
     BACKEND_HEADER: str = ""
     GROQ_API_KEY: str = ""
+    GOOGLE_EM_API_KEY: str = ""
+
     KAFKA_CONFIG: KafkaConfig = KafkaConfig()
 
     class Config:
