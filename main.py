@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from api import router
 
@@ -14,9 +15,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.get("/")
-def read_root():
-    return {"Message": "Hello World"}
+@app.get("/health")
+def health_check():
+    return JSONResponse(content="Monetra AI is up and grateful ☑️ 💯 ")
 
 
 app.include_router(router)
