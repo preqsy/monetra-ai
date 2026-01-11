@@ -2,14 +2,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from services.nl import get_nl_service
 from api import router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"Starting NLServic...")
-    get_nl_service()
+    # Avoid blocking startup on heavyweight model initialization.
     yield
 
 
