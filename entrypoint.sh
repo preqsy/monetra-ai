@@ -1,5 +1,6 @@
 #!/bin/sh
 
 
-poetry run python run.py
-poetry run uvicorn main:app --host 0.0.0.0 --port 9000
+poetry run python run.py &
+
+exec poetry run uvicorn main:app --host 0.0.0.0 --port "${PORT:-9000}"
