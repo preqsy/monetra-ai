@@ -8,7 +8,6 @@ from qdrant_client.http.models import (
 )
 
 from rag.embedder import Embedder
-from rag.embedder_providers.base import EmbedderABC
 from rag.schemas.transaction import TransactionDoc
 from config import settings
 

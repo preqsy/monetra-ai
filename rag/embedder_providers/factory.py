@@ -1,8 +1,6 @@
 from rag.embedder_providers.base import EmbedderABC
 from config import settings
 
-print(f"Factory Loading")
-
 
 def get_embedding_model() -> EmbedderABC:
 
@@ -27,6 +25,4 @@ def get_embedding_model() -> EmbedderABC:
         return LlamaHFEmbedder()
 
     else:
-        from rag.embedder_providers.ollama_model import OllamaEmbedder
-
-        return OllamaEmbedder()
+        raise

@@ -51,18 +51,18 @@ class NLService:
             raise
         return resolved
 
-    async def format_price_with_category(self, data_obj: "PriceFormat"):
-        stream = self.llm.format_price_query(
-            amount=data_obj.amount,
-            category=data_obj.category,
-            currency=data_obj.currency,
-        )
-        chunks = []
-        async for token in stream:
-            chunks.append(token)
-        return "".join(chunks)
+    # async def format_price_with_category(self, data_obj: "NLFormatRequest"):
+    #     stream = self.llm.format_price_query(
+    #         amount=data_obj.amount,
+    #         category=data_obj.category,
+    #         currency=data_obj.currency,
+    #     )
+    #     chunks = []
+    #     async for token in stream:
+    #         chunks.append(token)
+    #     return "".join(chunks)
 
-    async def format_price_with_category_stream(self, data_obj: "PriceFormat"):
+    async def format_price_with_category_stream(self, data_obj: "NLFormatRequest"):
         logger.debug(f"Started streaming price formatting: {data_obj.model_dump()}")
 
         async def sse_wrap():
@@ -97,4 +97,4 @@ def get_nl_service(llm_provider: LLM_PROVIDER = Query(default="ollama")):
 
 
 if TYPE_CHECKING:
-    from api.models import NLRequest, PriceFormat
+    from api.models import NLRequest, NLFormatRequest
