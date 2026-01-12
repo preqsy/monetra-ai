@@ -1,6 +1,5 @@
 import inspect
 import json
-from llama_index.llms.ollama import Ollama
 from pydantic import ValidationError
 
 from nl.llm_providers.factory import get_llm_provider
@@ -51,13 +50,11 @@ class NLQueryResolver:
         if not user_id:
             return NLResolveResult(
                 ok=False,
-                total_hits_considered=0,
                 error="user_id required",
             )
         if not query:
             return NLResolveResult(
                 ok=False,
-                total_hits_considered=0,
                 error="query required",
             )
         try:
@@ -65,7 +62,6 @@ class NLQueryResolver:
         except Exception as e:
             return NLResolveResult(
                 ok=False,
-                total_hits_considered=0,
                 error=str(e),
             )
 
@@ -85,7 +81,6 @@ class NLQueryResolver:
         return NLResolveResult(
             **data_dict,
             ok=True,
-            total_hits_considered=1,
             parse=parsed,
         )
 

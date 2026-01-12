@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from qdrant_client import QdrantClient
 from nl.models import NLResolveRequest
 from nl.nl_query_processor import NLQueryResolver
-from rag.embedder import OllamaEmbedder
+from rag.embedder import Embedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.search.retrieval import Retrieval
 from config import settings
@@ -25,7 +25,7 @@ class NLService:
         self.qdrant_client = QdrantClient(
             url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
         )
-        self.embedder = OllamaEmbedder()
+        self.embedder = Embedder()
         self.indexer = QdrantIndexer(
             qdrant_client=self.qdrant_client,
             embedder=self.embedder,

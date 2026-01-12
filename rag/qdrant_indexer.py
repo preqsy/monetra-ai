@@ -7,7 +7,8 @@ from qdrant_client.http.models import (
     PayloadSchemaType,
 )
 
-from rag.embedder import OllamaEmbedder
+from rag.embedder import Embedder
+from rag.embedder_providers.base import EmbedderABC
 from rag.schemas.transaction import TransactionDoc
 from config import settings
 
@@ -16,7 +17,7 @@ class QdrantIndexer:
     def __init__(
         self,
         qdrant_client: QdrantClient,
-        embedder: OllamaEmbedder,
+        embedder: Embedder,
     ) -> None:
         self.qdrant_client = qdrant_client
         self.embedder = embedder
