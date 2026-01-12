@@ -8,4 +8,5 @@ RUN pip install --upgrade pip && pip install poetry
 COPY . .
 RUN poetry install --without dev --no-root --no-cache
 
-CMD ["poetry", "run", "python", "run_service/run.py"]
+ENV PYTHONPATH=/app
+CMD ["poetry", "run", "python", "-m", "run_service.run"]
