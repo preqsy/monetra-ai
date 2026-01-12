@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class EmbeddingReturn(BaseModel):
     length: int
     embeddings: list
+    embedding_model: str = ""
 
 
 class EmbedderABC(ABC):

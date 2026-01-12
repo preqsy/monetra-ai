@@ -29,6 +29,7 @@ class TransactionDoc(BaseModel):
     category: str
     currency: str
     amount: int
+    embedding_model: str = ""
     date_utc: date = date.today()
 
     # TODO: Re-implement this validator to generate the text field from transaction data

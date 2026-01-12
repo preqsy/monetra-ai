@@ -63,6 +63,7 @@ class QdrantIndexer:
 
         embedded_doc = self.embedder.embed(doc.text)
 
+        doc.embedding_model = embedded_doc.embedding_model
         self.ensure_collection(vector_size=embedded_doc.length)
         payload = doc.model_dump(
             # exclude={"text"},

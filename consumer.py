@@ -53,10 +53,14 @@ class KafkaConsumer:
                         continue
 
                 event = json.loads(msg.value())
+                print(f"Event check: {event}")
                 handler(event)
 
                 self.consumer.commit(msg)  # <-- actually commit
         except KeyboardInterrupt:
             print("Consumer Interrupted")
+
+        except Exception as e:
+            print(f" Kafka Exception: {str(e)}")
         finally:
             self.consumer.close()
