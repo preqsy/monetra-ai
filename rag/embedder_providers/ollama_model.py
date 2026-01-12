@@ -9,4 +9,8 @@ class OllamaEmbedder(EmbedderABC):
     def embed(self, text: str):
         embedded_doc = self.embedder.get_text_embedding(text)
 
-        return EmbeddingReturn(embeddings=embedded_doc, length=len(embedded_doc))
+        return EmbeddingReturn(
+            embeddings=embedded_doc,
+            length=len(embedded_doc),
+            embedding_model="ollama",
+        )

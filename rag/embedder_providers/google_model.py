@@ -23,4 +23,6 @@ class GoogleEmbedder(EmbedderABC):
             raise ValueError()
         embeddings = embedding_obj[0].values
 
-        return EmbeddingReturn(embeddings=embeddings, length=len(embeddings))
+        return EmbeddingReturn(
+            embeddings=embeddings, length=len(embeddings), embedding_model="google"
+        )
