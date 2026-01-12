@@ -17,12 +17,6 @@ def get_embedding_model() -> EmbedderABC:
         from rag.embedder_providers.google_model import GoogleEmbedder
 
         return GoogleEmbedder()
-    elif settings.EMBEDDING_MODEL_PROVIDER == "hf":
-        # Burns your CPU
-        print(f"Using model: {settings.EMBEDDING_MODEL_PROVIDER}")
-        from rag.embedder_providers.hf_model import LlamaHFEmbedder
-
-        return LlamaHFEmbedder()
 
     else:
         raise

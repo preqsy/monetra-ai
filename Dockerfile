@@ -10,7 +10,8 @@ RUN pip install --upgrade pip && \
 
 COPY . .
 
-RUN poetry install --no-root
+RUN poetry install --without dev --no-root --no-cache
+
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
