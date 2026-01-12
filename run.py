@@ -22,5 +22,9 @@ def index_transaction(transaction_data):
 
 if __name__ == "__main__":
     topic = TRANSACTION_CREATED
-    consumer = KafkaConsumer(topic)
-    consumer.consume_message(index_transaction)
+    try:
+        consumer = KafkaConsumer(topic)
+        consumer.consume_message(index_transaction)
+    except Exception as exc:
+        print(f"Kafka consumer failed to start: {str(exc)}")
+        raise

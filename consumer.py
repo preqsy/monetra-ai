@@ -34,11 +34,12 @@ print(f"Kafka config: {kafka_config}")
 
 class KafkaConsumer:
     def __init__(self, topic: str, group_id: str = "monetra-ai") -> None:
+        self.topic = topic
         self.consumer = Consumer(kafka_config)
         self.consumer.subscribe([topic])  # <-- subscribe to topic
 
     def consume_message(self, handler):
-        print(f"listening.....")
+        print(f"listening to topic: {self.topic}.....")
         try:
             while True:
                 msg = self.consumer.poll(1.0)
