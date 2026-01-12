@@ -57,7 +57,6 @@ class NLResolveResult(BaseModel):
     discarded_candidates: List[DiscardedCategory] = Field(default_factory=list)
     category_scores: Optional[list] = []
 
-    total_hits_considered: int = Field(ge=0)
     error: Optional[str] = None
 
     @model_validator(mode="after")

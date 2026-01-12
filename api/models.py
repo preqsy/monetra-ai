@@ -6,7 +6,7 @@ class NLRequest(BaseModel):
     query: str = Field(min_length=3, max_length=500)
 
 
-class PriceFormat(BaseModel):
+class NLFormatRequest(BaseModel):
     amount: int | float
     category: str
     currency: str

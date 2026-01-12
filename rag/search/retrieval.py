@@ -3,7 +3,7 @@ from pprint import pprint
 from typing import Any, Dict, List
 
 from qdrant_client import QdrantClient
-from rag.embedder import OllamaEmbedder
+from rag.embedder import Embedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.schemas.transaction import (
     TransactionSearchFilters,
@@ -19,7 +19,7 @@ class Retrieval:
         self,
         indexer: QdrantIndexer,
         qdrant_client: QdrantClient,
-        embedder: OllamaEmbedder,
+        embedder: Embedder,
     ) -> None:
         self._REQUIRED_PAYLOAD_KEYS = ["doc_id", "doc_type"]
         self.indexer = indexer
@@ -48,7 +48,7 @@ class Retrieval:
         # print(f"Qdrant filter: {qfilter}")
         results = self.qdrant_client.query_points(
             collection_name=("monetra_collection"),
-            query=query_vec,
+            query=query_vec.embeddings,
             query_filter=qfilter,
             with_payload=True,
             with_vectors=False,
@@ -127,7 +127,7 @@ class Retrieval:
         - Select winner by combined score + threshold
 
         Returns:
-        (Resolved, winner_category_id, top_candidates, total_hits_considered)
+        (Resolved, winner_category_id, top_candidates)
         """
 
         search_text = search_text.strip().lower()
@@ -147,13 +147,13 @@ class Retrieval:
 
         results = self.qdrant_client.query_points(
             collection_name="monetra_collection",
-            query=query_vec,
+            query=query_vec.embeddings,
             query_filter=flt,
             limit=top_k,
             with_payload=True,
             with_vectors=False,
         )
-
+        # print(f"Query Results; {results}")
         cat_vec_cache: Dict[str, List[float]] = {}
         kept = []
         discarded = []
@@ -175,9 +175,9 @@ class Retrieval:
                 continue
 
             if cat_label not in cat_vec_cache:
-                cat_vec_cache[cat_label] = self.embedder.embed(cat_label)
+                cat_vec_cache[cat_label] = self.embedder.embed(cat_label).embeddings
 
-            cat_sim = self._consine(query_vec, cat_vec_cache[cat_label])
+            cat_sim = self._consine(query_vec.embeddings, cat_vec_cache[cat_label])
             cat_sim = max(0.0, min(1.0, float(cat_sim)))
 
             row = {
