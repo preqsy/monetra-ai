@@ -21,6 +21,7 @@ def index_transaction(transaction_data):
 
 
 if __name__ == "__main__":
+    print("run_service worker starting")
     topic = TRANSACTION_CREATED
     try:
         consumer = KafkaConsumer(topic)
