@@ -1,8 +1,18 @@
-from base64 import b64decode
 import json
+import logging
 import tempfile
+from base64 import b64decode
 from confluent_kafka import Consumer, KafkaError
 from config import settings
+
+
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+    )
+
+logger = logging.getLogger("consumer")
 
 
 def write_temp_file(b64_content):
@@ -29,17 +39,19 @@ if settings.ENVIRONMENT == "prod":
     kafka_config["ssl.certificate.location"] = cert_path
     kafka_config["ssl.key.location"] = key_path
 
-print(f"Kafka config: {kafka_config}")
+logger.info("Kafka config loaded for environment=%s", settings.ENVIRONMENT)
+logger.debug("Kafka config: %s", kafka_config)
 
 
 class KafkaConsumer:
     def __init__(self, topic: str, group_id: str = "monetra-ai") -> None:
         self.topic = topic
-        self.consumer = Consumer(kafka_config)
-        self.consumer.subscribe([topic])  # <-- subscribe to topic
+        self.consumer = Consumer({**kafka_config, "group.id": group_id})
+        self.consumer.subscribe([topic])
+        logger.info("Subscribed to topic=%s group_id=%s", topic, group_id)
 
     def consume_message(self, handler):
-        print(f"listening to topic: {self.topic}.....")
+        logger.info("Listening to topic=%s", self.topic)
         try:
             while True:
                 msg = self.consumer.poll(1.0)
@@ -49,18 +61,25 @@ class KafkaConsumer:
                     if msg.error().code() == KafkaError._PARTITION_EOF:
                         continue
                     else:
-                        print(f"Consumer error: {msg.error()}")
+                        logger.warning("Consumer error: %s", msg.error())
                         continue
 
                 event = json.loads(msg.value())
-                print(f"Event check: {event}")
+                logger.info(
+                    "Message received topic=%s partition=%s offset=%s",
+                    msg.topic(),
+                    msg.partition(),
+                    msg.offset(),
+                )
+                logger.debug("Event payload: %s", event)
                 handler(event)
 
-                self.consumer.commit(msg)  # <-- actually commit
+                self.consumer.commit(msg)
         except KeyboardInterrupt:
-            print("Consumer Interrupted")
+            logger.info("Consumer interrupted")
 
         except Exception as e:
-            print(f" Kafka Exception: {str(e)}")
+            logger.exception("Kafka exception")
         finally:
             self.consumer.close()
+            logger.info("Consumer closed")
