@@ -28,8 +28,10 @@ key_path = write_temp_file(settings.KAFKA_CONFIG.KAFKA_SERVICE_KEY)
 
 kafka_config = {
     "bootstrap.servers": "localhost:9092",
-    "auto.offset.reset": "earliest",
+    "auto.offset.reset": "latest",  # Changed to 'latest' to only consume new messages
     "group.id": settings.KAFKA_CONFIG.KAFKA_GROUP_ID,
+    "enable.auto.commit": True,
+    "auto.commit.interval.ms": 5000,
 }
 
 if settings.ENVIRONMENT == "prod":
@@ -73,17 +75,35 @@ class KafkaConsumer:
                         logger.warning("Consumer error: %s", msg.error())
                         continue
 
-                event = json.loads(msg.value())
-                logger.info(
-                    "Message received topic=%s partition=%s offset=%s",
-                    msg.topic(),
-                    msg.partition(),
-                    msg.offset(),
-                )
-                logger.debug("Event payload: %s", event)
-                handler(event)
+                try:
+                    event = json.loads(msg.value())
+                    logger.info(
+                        "Message received topic=%s partition=%s offset=%s",
+                        msg.topic(),
+                        msg.partition(),
+                        msg.offset(),
+                    )
+                    logger.debug("Event payload: %s", event)
 
-                self.consumer.commit(msg)
+                    # Process the message
+                    handler(event)
+
+                    # Manually commit only after successful processing
+                    self.consumer.commit(msg)
+                    logger.debug("Committed offset=%s", msg.offset())
+
+                except json.JSONDecodeError as e:
+                    logger.error(
+                        "Failed to decode JSON from offset %s: %s", msg.offset(), e
+                    )
+                    # Commit anyway to skip bad message
+                    self.consumer.commit(msg)
+
+                except Exception as e:
+                    logger.error("Handler failed for offset %s: %s", msg.offset(), e)
+                    logger.exception("Full traceback:")
+                    # Don't commit - message will be reprocessed on restart
+
         except KeyboardInterrupt:
             logger.info("Consumer interrupted")
 
