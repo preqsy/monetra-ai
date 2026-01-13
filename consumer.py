@@ -29,7 +29,7 @@ key_path = write_temp_file(settings.KAFKA_CONFIG.KAFKA_SERVICE_KEY)
 kafka_config = {
     "bootstrap.servers": "localhost:9092",
     "auto.offset.reset": "earliest",
-    "group.id": "monetra-ai",
+    "group.id": settings.KAFKA_CONFIG.KAFKA_GROUP_ID,
 }
 
 if settings.ENVIRONMENT == "prod":
@@ -44,11 +44,20 @@ logger.debug("Kafka config: %s", kafka_config)
 
 
 class KafkaConsumer:
-    def __init__(self, topic: str, group_id: str = "monetra-ai") -> None:
+    def __init__(
+        self,
+        topic: str,
+    ) -> None:
         self.topic = topic
-        self.consumer = Consumer({**kafka_config, "group.id": group_id})
+        self.consumer = Consumer(
+            {**kafka_config, "group.id": settings.KAFKA_CONFIG.KAFKA_GROUP_ID}
+        )
         self.consumer.subscribe([topic])
-        logger.info("Subscribed to topic=%s group_id=%s", topic, group_id)
+        logger.info(
+            "Subscribed to topic=%s group_id=%s",
+            topic,
+            settings.KAFKA_CONFIG.KAFKA_GROUP_ID,
+        )
 
     def consume_message(self, handler):
         logger.info("Listening to topic=%s", self.topic)

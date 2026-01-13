@@ -7,6 +7,7 @@ class KafkaConfig(BaseSettings):
     KAFKA_SERVICE_CERT: str = ""
     KAFKA_SERVICE_KEY: str = ""
     KAFKA_URL: str = ""
+    KAFKA_GROUP_ID: str = "monetra-ai"
 
     class Config:
         env_file = ".env"
