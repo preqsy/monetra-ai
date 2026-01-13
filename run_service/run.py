@@ -1,3 +1,5 @@
+import logging
+
 from qdrant_client import QdrantClient
 from config.topics.transaction import TRANSACTION_CREATED
 from consumer import KafkaConsumer
@@ -21,11 +23,16 @@ def index_transaction(transaction_data):
 
 
 if __name__ == "__main__":
-    print("run_service worker starting")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+    )
+    logger = logging.getLogger("run_service")
+    logger.info("worker starting")
     topic = TRANSACTION_CREATED
     try:
         consumer = KafkaConsumer(topic)
         consumer.consume_message(index_transaction)
     except Exception as exc:
-        print(f"Kafka consumer failed to start: {str(exc)}")
+        logger.exception("Kafka consumer failed to start")
         raise

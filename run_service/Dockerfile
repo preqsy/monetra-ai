@@ -9,4 +9,5 @@ COPY . .
 RUN poetry install --without dev --no-root --no-cache
 
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 CMD ["poetry", "run", "python", "-m", "run_service.run"]
