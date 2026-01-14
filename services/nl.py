@@ -84,7 +84,11 @@ LLM_PROVIDER = Literal["groq", "ollama"]
 
 
 @lru_cache(maxsize=1)
-def get_nl_service(llm_provider: LLM_PROVIDER = Query(default="ollama")):
+def get_nl_service(
+    llm_provider: LLM_PROVIDER = Query(
+        default="ollama" if settings.ENVIRONMENT == "dev" else "groq"
+    ),
+) -> NLService:
     try:
         service = NLService(llm_provider=llm_provider)
         logger.info(f"NLService initialized with provider: {llm_provider}")

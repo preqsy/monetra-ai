@@ -42,7 +42,6 @@ if settings.ENVIRONMENT == "prod":
     kafka_config["ssl.key.location"] = key_path
 
 logger.info("Kafka config loaded for environment=%s", settings.ENVIRONMENT)
-logger.debug("Kafka config: %s", kafka_config)
 
 
 class KafkaConsumer:
@@ -60,9 +59,6 @@ class KafkaConsumer:
             topic,
             settings.KAFKA_CONFIG.KAFKA_GROUP_ID,
         )
-        self.metadata = self.consumer.list_topics(timeout=10.0)
-        logger.debug("Topic metadata: %s", self.metadata)
-        logger.debug("Partitions: %s", self.metadata.topics[topic].partitions)
 
     def consume_message(self, handler):
         logger.info("Listening to topic=%s", self.topic)
