@@ -110,7 +110,6 @@ class NLQueryResolver:
         category: str,
         currency: str,
     ):
-        print(f"Amount: {amount}")
         prompt = (
             f"{PRICE_FORMAT_PROMPT}\n\n"
             f"AMOUNT: {json.dumps(amount)} "

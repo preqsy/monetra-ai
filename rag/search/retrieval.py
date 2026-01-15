@@ -153,7 +153,6 @@ class Retrieval:
             with_payload=True,
             with_vectors=False,
         )
-        # print(f"Query Results; {results}")
         cat_vec_cache: Dict[str, List[float]] = {}
         kept = []
         discarded = []

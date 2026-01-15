@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 import logfire
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from config import settings
