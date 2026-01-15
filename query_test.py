@@ -15,7 +15,7 @@ async def main():
     retrieval = Retrieval(
         indexer=indexer, qdrant_client=qdrant_client, embedder=embedder
     )
-    llm = NLQueryResolver(retriever=retrieval, llm_provider="ollama")
+    llm = NLQueryResolver(retriever=retrieval, llm_provider="groq")
 
     req = NLResolveRequest(
         user_id=5,

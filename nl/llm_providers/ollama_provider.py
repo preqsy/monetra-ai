@@ -1,6 +1,7 @@
 import json
 from nl.llm_providers.base import ChatResult, LLMProvider
 from llama_index.llms.ollama import Ollama
+from config import settings
 
 
 class OllamaProvider(LLMProvider):
@@ -9,7 +10,7 @@ class OllamaProvider(LLMProvider):
         self,
         *,
         temperature: float,
-        model: str = "Qwen2.5:7b",
+        model: str = settings.LLM_MODEL_NAME,
     ):
         self.llm = Ollama(
             model=model,
