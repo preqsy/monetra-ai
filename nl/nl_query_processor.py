@@ -7,6 +7,7 @@ from nl.llm_providers.factory import get_llm_provider
 from nl.models import NLParse, NLResolveRequest, NLResolveResult
 from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
 from rag.search.retrieval import Retrieval
+from config import settings
 
 
 class NLQueryResolver:
@@ -18,6 +19,7 @@ class NLQueryResolver:
     ) -> None:
         self.llm = get_llm_provider(temperature=temperature, llm_provider=llm_provider)
         self.retriever = retriever
+        self.temperature = temperature
 
     def extract_json(self, text: str) -> str:
         text = text.strip()
@@ -30,9 +32,18 @@ class NLQueryResolver:
         if not q:
             raise ValueError("Empty query")
 
-        raw = await self.llm.chat(query=q, prompt=SYSTEM_PROMPT)
+        with logfire.span(
+            "LLM Chat for NL Parsing",
+            temperature=self.temperature,
+            model_name=settings.LLM_MODEL_NAME,
+        ):
+            raw = await self.llm.chat(
+                query=q,
+                prompt=f"{SYSTEM_PROMPT}\n\nUSER QUERY: {json.dumps(q)}",
+            )
 
-        print(f"LLM data response: {raw.text}")
+        logfire.info("llm_raw_response", text=raw.text)
+
         clean = self.extract_json(raw.text)
         data = json.loads(clean)
 
@@ -59,20 +70,19 @@ class NLQueryResolver:
                 error="query required",
             )
         try:
+            # with log
             parsed = await self.parse_query_llm(query)
         except Exception as e:
             return NLResolveResult(
                 ok=False,
                 error=str(e),
             )
-        logfire.configure()
+
         logfire.info(
             f"Parsed NL Query: {parsed.model_dump()}",
         )
 
         search_text = parsed.target_text if parsed.target_kind != "unknown" else query
-
-        print(f"**** Search text: {search_text}")
 
         data_dict = {}
 
@@ -88,6 +98,11 @@ class NLQueryResolver:
             ok=True,
             parse=parsed,
         )
+        # else:
+        #     return NLResolveResult(
+        #         ok=False,
+        #         error="Unsupported target_kind",
+        #     )
 
     async def format_price_query(
         self,

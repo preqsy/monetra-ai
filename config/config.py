@@ -15,8 +15,13 @@ class KafkaConfig(BaseSettings):
 
 
 class Settings(BaseSettings):
-    LLM_MODEL_NAME: str = "Qwen2.5:7b"
-    ENVIRONMENT: str = "dev"
+    ENVIRONMENT: str = "prod"
+    LLM_MODEL_NAME: str = (
+        "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
+    )
+    # LLM_MODEL_NAME: str = (
+    #     "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
+    # )
 
     QDRANT_API_KEY: str = ""
     QDRANT_URL: str = "localhost:6333"

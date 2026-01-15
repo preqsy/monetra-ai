@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import logfire
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -13,7 +14,11 @@ async def lifespan(app: FastAPI):
     yield
 
 
+logfire.configure(service_name="monetraai", environment=settings.ENVIRONMENT)
+# logger = logfire
 app = FastAPI(lifespan=lifespan)
+
+logfire.instrument_fastapi(app)
 
 
 @app.middleware("http")

@@ -13,7 +13,7 @@ class GroqProvider(LLMProvider):
         self,
         # model: str = "llama-3.1-70b-versatile",
         temperature: float,
-        model: str = "llama-3.1-8b-instant",
+        model: str = settings.LLM_MODEL_NAME,
     ) -> None:
         self.llm = AsyncOpenAI(
             api_key=settings.GROQ_API_KEY,
