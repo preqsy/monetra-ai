@@ -86,7 +86,7 @@ LLM_PROVIDER = Literal["groq", "ollama"]
 @lru_cache(maxsize=1)
 def get_nl_service(
     llm_provider: LLM_PROVIDER = Query(
-        default="ollama" if settings.ENVIRONMENT == "dev" else "groq"
+        default="groq" if settings.ENVIRONMENT == "dev" else "groq"
     ),
 ) -> NLService:
     try:

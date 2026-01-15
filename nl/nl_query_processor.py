@@ -2,6 +2,7 @@ import inspect
 import json
 from pydantic import ValidationError
 
+import logfire
 from nl.llm_providers.factory import get_llm_provider
 from nl.models import NLParse, NLResolveRequest, NLResolveResult
 from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
@@ -64,6 +65,10 @@ class NLQueryResolver:
                 ok=False,
                 error=str(e),
             )
+        logfire.configure()
+        logfire.info(
+            f"Parsed NL Query: {parsed.model_dump()}",
+        )
 
         search_text = parsed.target_text if parsed.target_kind != "unknown" else query
 

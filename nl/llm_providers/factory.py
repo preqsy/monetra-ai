@@ -1,7 +1,7 @@
 from nl.llm_providers.base import LLMProvider
 
 
-def get_llm_provider(temperature: float, llm_provider: str = "ollama") -> LLMProvider:
+def get_llm_provider(temperature: float, llm_provider: str) -> LLMProvider:
     if llm_provider == "ollama":
         # For local development and to reduce cloud cost
         print(f"Using LLM Provider: {llm_provider}")

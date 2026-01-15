@@ -17,7 +17,8 @@ dependencies = [
     "confluent-kafka (>=2.13.0,<3.0.0)",
     "openai (>=2.14.0,<3.0.0)",
     "numpy (<2)",
-    "google-genai (>=1.57.0,<2.0.0)"
+    "google-genai (>=1.57.0,<2.0.0)",
+    "logfire (>=4.18.0,<5.0.0)"
 ]
 
 # Development-only dependencies (local ML tooling)
