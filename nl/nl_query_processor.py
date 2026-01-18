@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 import logfire
 from nl.llm_providers.factory import get_llm_provider
-from nl.models import NLParse, NLResolveRequest, NLResolveResult
+from nl.models import Interpretation, NLParse, NLResolveRequest, NLResolveResult
 from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
 from rag.search.retrieval import Retrieval
 from config import settings
@@ -27,7 +27,7 @@ class NLQueryResolver:
             text = text.split("```", 2)[1]
         return text.strip()
 
-    async def parse_query_llm(self, query: str) -> NLParse:
+    async def parse_query_llm(self, query: str, prompt: str = SYSTEM_PROMPT) -> NLParse:
         q = query.strip()
         if not q:
             raise ValueError("Empty query")
@@ -39,12 +39,12 @@ class NLQueryResolver:
         ):
             raw = await self.llm.chat(
                 query=q,
-                prompt=f"{SYSTEM_PROMPT}\n\nUSER QUERY: {json.dumps(q)}",
+                prompt=f"{prompt}\n\nUSER QUERY: {json.dumps(q)}",
             )
 
-        logfire.info("llm_raw_response", text=raw.text)
+        logfire.info("llm_raw_response", text=raw.response)
 
-        clean = self.extract_json(raw.text)
+        clean = self.extract_json(raw.response)
         data = json.loads(clean)
 
         try:
@@ -54,6 +54,21 @@ class NLQueryResolver:
 
         parsed.target_text = parsed.target_text.strip().lower()
         return parsed
+
+    async def interpret_user_query(
+        self,
+        query: str,
+    ) -> Interpretation:
+
+        llm_rsp = await self.llm.chat_with_format(query=query, prompt=SYSTEM_PROMPT)
+
+        clean = self.extract_json(llm_rsp.response)
+        json_data = json.loads(clean)
+        try:
+            llm_rsp_obj = Interpretation(**json_data)
+        except ValidationError as e:
+            raise ValueError(f"Interpretation validation failed: {e}") from e
+        return llm_rsp_obj
 
     async def resolve_nl(self, req: NLResolveRequest) -> NLResolveResult:
         user_id = req.user_id
@@ -98,11 +113,6 @@ class NLQueryResolver:
             ok=True,
             parse=parsed,
         )
-        # else:
-        #     return NLResolveResult(
-        #         ok=False,
-        #         error="Unsupported target_kind",
-        #     )
 
     async def format_price_query(
         self,

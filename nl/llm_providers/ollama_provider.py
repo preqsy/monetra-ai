@@ -2,6 +2,7 @@ import json
 from nl.llm_providers.base import ChatResult, LLMProvider
 from llama_index.llms.ollama import Ollama
 from config import settings
+from nl.models import Interpretation
 
 
 class OllamaProvider(LLMProvider):
@@ -22,6 +23,7 @@ class OllamaProvider(LLMProvider):
             },
             request_timeout=600.0,
         )
+        self.sllm = self.llm.as_structured_llm(output_cls=Interpretation)
 
     async def chat(
         self,
@@ -38,7 +40,23 @@ class OllamaProvider(LLMProvider):
         )
         data = data.text
 
-        return ChatResult(text=data)
+        return ChatResult(response=data)
+
+    async def chat_with_format(
+        self,
+        query: str,
+        prompt: str,
+    ) -> ChatResult:
+        q = query.strip()
+
+        if not q:
+            raise ValueError("Empty Query")
+
+        data = await self.sllm.acomplete(
+            prompt=f"{prompt} \n\n USER QUERY: {json.dumps(q)} \n\n"
+        )
+
+        return ChatResult(response=data.text)
 
     async def stream(
         self,

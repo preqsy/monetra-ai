@@ -11,8 +11,7 @@ from rag.embedder import Embedder
 from rag.qdrant_indexer import QdrantIndexer
 from rag.search.retrieval import Retrieval
 from config import settings
-
-logger = logging.getLogger(__name__)
+import logfire
 
 
 class NLService:
@@ -41,29 +40,18 @@ class NLService:
         )
 
     async def resolve_user_query(self, data_obj: "NLRequest"):
-        logger.debug(f"Resolving user query: {data_obj.query}")
+        logfire.debug(f"Resolving user query: {data_obj.query}")
         req = NLResolveRequest(**data_obj.model_dump())
         try:
             resolved = await self.llm.resolve_nl(req)
-            logger.info(f"Successfully resolved: {req.model_dump()} ")
+            logfire.info(f"Successfully resolved: {req.model_dump()} ")
         except Exception as e:
-            logger.error(f"Failed to resolve user query: {str(e)}")
+            logfire.error(f"Failed to resolve user query: {str(e)}")
             raise
         return resolved
 
-    # async def format_price_with_category(self, data_obj: "NLFormatRequest"):
-    #     stream = self.llm.format_price_query(
-    #         amount=data_obj.amount,
-    #         category=data_obj.category,
-    #         currency=data_obj.currency,
-    #     )
-    #     chunks = []
-    #     async for token in stream:
-    #         chunks.append(token)
-    #     return "".join(chunks)
-
     async def format_price_with_category_stream(self, data_obj: "NLFormatRequest"):
-        logger.debug(f"Started streaming price formatting: {data_obj.model_dump()}")
+        logfire.debug(f"Started streaming price formatting: {data_obj.model_dump()}")
 
         async def sse_wrap():
             stream = self.llm.format_price_query(
@@ -79,6 +67,12 @@ class NLService:
             media_type="text/event-stream",
         )
 
+    async def interpret_user_query(self, query: str):
+        logfire.debug(f"Interpreting user query: {query}")
+        interpretation = await self.llm.interpret_user_query(query=query)
+        logfire.info(f"Successfully interpreted query.")
+        return interpretation
+
 
 LLM_PROVIDER = Literal["groq", "ollama"]
 
@@ -91,9 +85,9 @@ def get_nl_service(
 ) -> NLService:
     try:
         service = NLService(llm_provider=llm_provider)
-        logger.info(f"NLService initialized with provider: {llm_provider}")
+        logfire.info(f"NLService initialized with provider: {llm_provider}")
     except Exception as e:
-        logger.error(
+        logfire.error(
             f"Failed to initialize NLService with provider {llm_provider}: {e}"
         )
         raise

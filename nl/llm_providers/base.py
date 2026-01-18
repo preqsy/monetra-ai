@@ -7,7 +7,7 @@ Role = Literal["system", "user", "assistant"]
 
 
 class ChatResult(BaseModel):
-    text: str
+    response: str
     metadata: Optional[Dict] = {}
 
 
@@ -20,6 +20,10 @@ class LLMProvider(ABC):
 
     @abstractmethod
     async def chat(self, query: str, prompt: str) -> ChatResult:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def chat_with_format(self, query: str, prompt: str) -> ChatResult:
         raise NotImplementedError
 
     @abstractmethod
