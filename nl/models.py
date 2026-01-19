@@ -128,4 +128,4 @@ class Interpretation(BaseModel):
 
     explanation_request: bool
     delta: Optional[QueryDelta] = None
-    ambiguity: Ambiguity
+    ambiguity: Optional[Ambiguity] = None

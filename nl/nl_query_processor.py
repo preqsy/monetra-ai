@@ -5,7 +5,7 @@ from pydantic import ValidationError
 import logfire
 from nl.llm_providers.factory import get_llm_provider
 from nl.models import Interpretation, NLParse, NLResolveRequest, NLResolveResult
-from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
+from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT, TRANSLATE_USER_INTENTION
 from rag.search.retrieval import Retrieval
 from config import settings
 
@@ -60,7 +60,9 @@ class NLQueryResolver:
         query: str,
     ) -> Interpretation:
 
-        llm_rsp = await self.llm.chat_with_format(query=query, prompt=SYSTEM_PROMPT)
+        llm_rsp = await self.llm.chat_with_format(
+            query=query, prompt=TRANSLATE_USER_INTENTION
+        )
 
         clean = self.extract_json(llm_rsp.response)
         json_data = json.loads(clean)

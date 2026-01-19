@@ -6,6 +6,7 @@ from openai import AsyncOpenAI, BaseModel
 from nl.models import Interpretation
 from nl.prompt import SYSTEM_PROMPT
 from config import settings
+from openai.types import ResponseFormatJSONSchema
 
 
 class GroqProvider(LLMProvider):
@@ -50,18 +51,20 @@ class GroqProvider(LLMProvider):
         if not query:
             raise ValueError("Empty query")
 
-        # TODO: Use a response format
-        response = await self.llm.chat.completions.parse(
+        response = await self.llm.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": query},
             ],
             temperature=self.temperature,
-            response_format=Interpretation,
         )
-        print(f"OpenAI Response: {response}")
+
+        # print(f"OpenAI Response: {response}")
+
         text = response.choices[0].message.content
+
+        # print(f"{text}")
         return ChatResult(response=text, metadata={"model": response.model})
 
     async def stream(self, prompt: str):
