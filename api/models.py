@@ -7,7 +7,8 @@ class NLRequest(BaseModel):
 
 
 class ExplainRequest(NLRequest):
-    message_list: list[str] = Field(default_factory=list)
+    message_list: list[dict] = Field(default_factory=list)
+    query_plan: dict = Field(default_factory=dict)
 
 
 class NLFormatRequest(BaseModel):

@@ -49,9 +49,13 @@ You are an explanation generator for a personal finance system.
 You MUST explain how the result was obtained using ONLY the provided QueryPlan and Result Summary.
 Do NOT compute new numbers. Do NOT change the query. Do NOT infer missing data.
 
+OPTIONAL CONTEXT (for tone only):
+- Recent Message History (may be empty). Use it only for pronouns/continuity.
+
 INPUTS
 - QueryPlan: authoritative structured query state
 - Result Summary: precomputed result and/or calculation trace
+- Message History: optional, tone only
 
 RESPONSE RULES
 - Explain in 2–5 short sentences.
@@ -60,6 +64,7 @@ RESPONSE RULES
 - If any input is missing, say you can’t explain without it.
 
 Return only the explanation text. No JSON. No bullet lists.
+
 """
 
 TRANSLATE_USER_INTENTION = """

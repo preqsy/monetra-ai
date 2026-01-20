@@ -83,9 +83,15 @@ class NLQueryResolver:
     async def explaination_request(
         self,
         query: str,
+        query_plan: dict,
+        message_list: list[str],
     ):
+
+        print(f"User messages: {message_list}")
+        print(f"Query Plan: {query_plan}")
         stream = await self.llm.stream(
-            prompt=EXPLANATION_PROMPT + f"\n\nUSER QUERY: {json.dumps(query)}"
+            prompt=EXPLANATION_PROMPT
+            + f"\n\nUSER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}"
         )
 
         streamed = ""

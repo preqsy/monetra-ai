@@ -73,11 +73,15 @@ class NLService:
         logfire.info(f"Successfully interpreted query.")
         return interpretation
 
-    async def explain_request(self, query: str = ""):
+    async def explain_request(
+        self, query: str = "", query_plan: dict = {}, message_list: list[str] = []
+    ):
         logfire.debug(f"Explaining request.")
 
         async def sse_wrap():
-            stream = self.llm.explaination_request(query=query)
+            stream = self.llm.explaination_request(
+                query=query, query_plan=query_plan, message_list=message_list
+            )
             async for token in stream:
                 yield f"data: {token}\n\n"
 

@@ -39,4 +39,8 @@ async def explain_request(
     data_obj: ExplainRequest,
     nl_service: NLService = Depends(get_nl_service),
 ):
-    return await nl_service.explain_request(query=data_obj.query)
+    return await nl_service.explain_request(
+        query=data_obj.query,
+        query_plan=data_obj.query_plan,
+        message_list=data_obj.message_list,
+    )
