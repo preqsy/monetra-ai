@@ -15,7 +15,7 @@ class KafkaConfig(BaseSettings):
 
 
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "dev"
+    ENVIRONMENT: str = "prod"
     LLM_MODEL_NAME: str = (
         "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
     )

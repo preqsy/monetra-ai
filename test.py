@@ -7,9 +7,9 @@ from nl.prompt import TRANSLATE_USER_INTENTION
 
 
 async def main():
-    nL_query = get_llm_provider(llm_provider="groq", temperature=0.5)
+    nL_query = get_llm_provider(llm_provider="ollama", temperature=0.5)
 
-    query = "How much did i spend pn fod this month?"
+    query = "How much did i spend pn fod?"
     rsp = await nL_query.chat_with_format(query=query, prompt=TRANSLATE_USER_INTENTION)
     print(f"Response: {rsp}")
     print(f"Response type: {type(rsp)}")

@@ -74,30 +74,6 @@ class NLResolveResult(BaseModel):
         return self
 
 
-class TimeRangeType(str, Enum):
-    day = "day"
-    week = "week"
-    month = "month"
-    year = "year"
-    custom = "custom"
-
-
-class TimeRange(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    type: TimeRangeType
-    value: Optional[str] = (
-        None  # e.g. "this_month", "last_month", "2026-01-01..2026-01-15", etc.
-    )
-
-
-class Filters(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    include: List[str] = Field(default_factory=list)
-    exclude: List[str] = Field(default_factory=list)
-
-
 class QueryDelta(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -106,8 +82,6 @@ class QueryDelta(BaseModel):
     target_reference: Optional[str] = (
         None  # natural-language reference; backend resolves to IDs
     )
-    time_range: Optional[TimeRange] = None
-    filters: Optional[Filters] = None
     currency_mode: Optional[str] = None  # e.g. "EUR", "USD", "BASE"
     grouping: Optional[str] = None  # e.g. "category", "merchant", "day"
 

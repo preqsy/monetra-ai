@@ -60,8 +60,11 @@ class NLQueryResolver:
         query: str,
     ) -> Interpretation:
 
+        llm_parse_rsp = await self.parse_query_llm(query)
+
         llm_rsp = await self.llm.chat_with_format(
-            query=query, prompt=TRANSLATE_USER_INTENTION
+            query=query,
+            prompt=f"{TRANSLATE_USER_INTENTION} \n\nPARSE: {llm_parse_rsp.model_dump_json()}",
         )
 
         clean = self.extract_json(llm_rsp.response)
