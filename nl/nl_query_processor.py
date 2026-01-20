@@ -5,7 +5,12 @@ from pydantic import ValidationError
 import logfire
 from nl.llm_providers.factory import get_llm_provider
 from nl.models import Interpretation, NLParse, NLResolveRequest, NLResolveResult
-from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT, TRANSLATE_USER_INTENTION
+from nl.prompt import (
+    EXPLANATION_PROMPT,
+    PRICE_FORMAT_PROMPT,
+    SYSTEM_PROMPT,
+    TRANSLATE_USER_INTENTION,
+)
 from rag.search.retrieval import Retrieval
 from config import settings
 
@@ -74,6 +79,47 @@ class NLQueryResolver:
         except ValidationError as e:
             raise ValueError(f"Interpretation validation failed: {e}") from e
         return llm_rsp_obj
+
+    async def explaination_request(
+        self,
+        query: str,
+    ):
+        stream = await self.llm.stream(
+            prompt=EXPLANATION_PROMPT + f"\n\nUSER QUERY: {json.dumps(query)}"
+        )
+
+        streamed = ""
+        if inspect.isawaitable(stream):
+            stream = await stream
+        async for chunk in stream:
+            delta = getattr(chunk, "delta", None)
+            if delta:
+                streamed += delta
+                yield delta
+                continue
+
+            text = getattr(chunk, "text", None)
+            if text:
+                if text.startswith(streamed):
+                    remainder = text[len(streamed) :]
+                    if remainder:
+                        yield remainder
+                    streamed = text
+                    continue
+
+                if text != streamed:
+                    yield text
+                    streamed = text
+                continue
+
+            choices = getattr(chunk, "choices", None)
+            if choices:
+                choice = choices[0]
+                choice_delta = getattr(choice, "delta", None)
+                content = getattr(choice_delta, "content", None)
+                if content:
+                    streamed += content
+                    yield content
 
     async def resolve_nl(self, req: NLResolveRequest) -> NLResolveResult:
         user_id = req.user_id

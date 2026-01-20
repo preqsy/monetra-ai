@@ -73,6 +73,20 @@ class NLService:
         logfire.info(f"Successfully interpreted query.")
         return interpretation
 
+    async def explain_request(self, query: str = ""):
+        logfire.debug(f"Explaining request.")
+
+        async def sse_wrap():
+            stream = self.llm.explaination_request(query=query)
+            async for token in stream:
+                yield f"data: {token}\n\n"
+
+        logfire.info(f"Successfully generated explanation.")
+        return StreamingResponse(
+            sse_wrap(),
+            media_type="text/event-stream",
+        )
+
 
 LLM_PROVIDER = Literal["groq", "ollama"]
 

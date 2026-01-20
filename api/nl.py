@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from api.models import NLRequest, NLFormatRequest
+from api.models import ExplainRequest, NLRequest, NLFormatRequest
 from services.nl import NLService, get_nl_service
 from config import settings
 
@@ -32,3 +32,11 @@ async def interpret_nl_query(
 ):
 
     return await nl_service.interpret_user_query(data_obj.query)
+
+
+@router.post("/explain")
+async def explain_request(
+    data_obj: ExplainRequest,
+    nl_service: NLService = Depends(get_nl_service),
+):
+    return await nl_service.explain_request(query=data_obj.query)
