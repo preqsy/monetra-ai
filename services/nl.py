@@ -67,9 +67,11 @@ class NLService:
             media_type="text/event-stream",
         )
 
-    async def interpret_user_query(self, query: str):
+    async def interpret_user_query(self, query: str, query_plan: dict):
         logfire.debug(f"Interpreting user query: {query}")
-        interpretation = await self.llm.interpret_user_query(query=query)
+        interpretation = await self.llm.interpret_user_query(
+            query=query, query_plan=query_plan
+        )
         logfire.info(f"Successfully interpreted query.")
         return interpretation
 

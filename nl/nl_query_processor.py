@@ -63,13 +63,12 @@ class NLQueryResolver:
     async def interpret_user_query(
         self,
         query: str,
+        query_plan: dict,
     ) -> Interpretation:
-
-        llm_parse_rsp = await self.parse_query_llm(query)
 
         llm_rsp = await self.llm.chat_with_format(
             query=query,
-            prompt=f"{TRANSLATE_USER_INTENTION} \n\nPARSE: {llm_parse_rsp.model_dump_json()}",
+            prompt=f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}",
         )
 
         clean = self.extract_json(llm_rsp.response)
@@ -87,8 +86,6 @@ class NLQueryResolver:
         message_list: list[str],
     ):
 
-        print(f"User messages: {message_list}")
-        print(f"Query Plan: {query_plan}")
         stream = await self.llm.stream(
             prompt=EXPLANATION_PROMPT
             + f"\n\nUSER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}"

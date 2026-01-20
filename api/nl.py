@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from api.models import ExplainRequest, NLRequest, NLFormatRequest
+from api.models import ExplainRequest, NLRequest, NLFormatRequest, TranslateRequest
 from services.nl import NLService, get_nl_service
 from config import settings
 
@@ -27,11 +27,11 @@ async def format_price_with_category(
 
 @router.post("/interpret")
 async def interpret_nl_query(
-    data_obj: NLRequest,
+    data_obj: TranslateRequest,
     nl_service: NLService = Depends(get_nl_service),
 ):
 
-    return await nl_service.interpret_user_query(data_obj.query)
+    return await nl_service.interpret_user_query(data_obj.query, data_obj.query_plan)
 
 
 @router.post("/explain")

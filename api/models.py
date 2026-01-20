@@ -6,6 +6,10 @@ class NLRequest(BaseModel):
     query: str = Field(min_length=3, max_length=500)
 
 
+class TranslateRequest(NLRequest):
+    query_plan: dict = Field(default_factory=dict)
+
+
 class ExplainRequest(NLRequest):
     message_list: list[dict] = Field(default_factory=list)
     query_plan: dict = Field(default_factory=dict)
