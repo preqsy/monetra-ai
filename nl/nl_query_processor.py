@@ -66,9 +66,13 @@ class NLQueryResolver:
         query_plan: dict,
     ) -> Interpretation:
 
+        print("Interpreting user query with plan:", query_plan)
+        prompt = f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}"
+
+        print("Using prompt:", prompt)
         llm_rsp = await self.llm.chat_with_format(
             query=query,
-            prompt=f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}",
+            prompt=prompt,
         )
 
         clean = self.extract_json(llm_rsp.response)

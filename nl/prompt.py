@@ -46,7 +46,7 @@ Output constraints:
 EXPLANATION_PROMPT = """
 You are an explanation generator for a personal finance system.
 
-You MUST explain how the result was obtained using ONLY the provided QueryPlan and Result Summary.
+You MUST explain how the result was obtained using ONLY the provided QueryPlan.
 Do NOT compute new numbers. Do NOT change the query. Do NOT infer missing data.
 
 OPTIONAL CONTEXT (for tone only):
