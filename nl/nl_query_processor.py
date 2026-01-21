@@ -91,10 +91,9 @@ class NLQueryResolver:
         result_summary: str,
     ):
 
-        stream = await self.llm.stream(
-            prompt=EXPLANATION_PROMPT
-            + f"\n\nUSER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}\n\nRESULT SUMMARY: {json.dumps(result_summary)}"
-        )
+        prompt = f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}\n\nRESULT SUMMARY: {json.dumps(result_summary)}"
+        print("Using explanation prompt:", prompt)
+        stream = await self.llm.stream(prompt=prompt)
 
         streamed = ""
         if inspect.isawaitable(stream):
