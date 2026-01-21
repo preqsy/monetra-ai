@@ -31,7 +31,10 @@ async def interpret_nl_query(
     nl_service: NLService = Depends(get_nl_service),
 ):
 
-    return await nl_service.interpret_user_query(data_obj.query, data_obj.query_plan)
+    return await nl_service.interpret_user_query(
+        data_obj.query,
+        data_obj.query_plan,
+    )
 
 
 @router.post("/explain")
@@ -43,4 +46,5 @@ async def explain_request(
         query=data_obj.query,
         query_plan=data_obj.query_plan,
         message_list=data_obj.message_list,
+        result_summary=data_obj.result_summary,
     )

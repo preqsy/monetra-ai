@@ -69,7 +69,7 @@ class NLQueryResolver:
         print("Interpreting user query with plan:", query_plan)
         prompt = f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}"
 
-        print("Using prompt:", prompt)
+        # print("Using prompt:", prompt)
         llm_rsp = await self.llm.chat_with_format(
             query=query,
             prompt=prompt,
@@ -86,13 +86,14 @@ class NLQueryResolver:
     async def explaination_request(
         self,
         query: str,
-        query_plan: dict,
-        message_list: list[str],
+        query_plan: str,
+        message_list: str,
+        result_summary: str,
     ):
 
         stream = await self.llm.stream(
             prompt=EXPLANATION_PROMPT
-            + f"\n\nUSER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}"
+            + f"\n\nUSER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}\n\nRESULT SUMMARY: {json.dumps(result_summary)}"
         )
 
         streamed = ""

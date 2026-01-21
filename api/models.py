@@ -7,12 +7,13 @@ class NLRequest(BaseModel):
 
 
 class TranslateRequest(NLRequest):
-    query_plan: dict = Field(default_factory=dict)
+    query_plan: str = Field(default_factory=str)
 
 
 class ExplainRequest(NLRequest):
-    message_list: list[dict] = Field(default_factory=list)
-    query_plan: dict = Field(default_factory=dict)
+    message_list: str = Field(default_factory=str)
+    query_plan: str = Field(default_factory=str)
+    result_summary: str = Field(default_factory=str)
 
 
 class NLFormatRequest(BaseModel):

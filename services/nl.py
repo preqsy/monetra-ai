@@ -67,22 +67,34 @@ class NLService:
             media_type="text/event-stream",
         )
 
-    async def interpret_user_query(self, query: str, query_plan: dict):
+    async def interpret_user_query(
+        self,
+        query: str,
+        query_plan: dict,
+    ):
         logfire.debug(f"Interpreting user query: {query}")
         interpretation = await self.llm.interpret_user_query(
-            query=query, query_plan=query_plan
+            query=query,
+            query_plan=query_plan,
         )
         logfire.info(f"Successfully interpreted query.")
         return interpretation
 
     async def explain_request(
-        self, query: str = "", query_plan: dict = {}, message_list: list[str] = []
+        self,
+        query: str = "",
+        query_plan: str = "",
+        result_summary: str = "",
+        message_list: str = "",
     ):
         logfire.debug(f"Explaining request.")
 
         async def sse_wrap():
             stream = self.llm.explaination_request(
-                query=query, query_plan=query_plan, message_list=message_list
+                query=query,
+                query_plan=query_plan,
+                message_list=message_list,
+                result_summary=result_summary,
             )
             async for token in stream:
                 yield f"data: {token}\n\n"

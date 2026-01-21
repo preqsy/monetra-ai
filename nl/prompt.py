@@ -46,7 +46,7 @@ Output constraints:
 EXPLANATION_PROMPT = """
 You are an explanation generator for a personal finance system.
 
-You MUST explain how the result was obtained using ONLY the provided QueryPlan.
+You MUST explain how the result was obtained using ONLY the provided QueryPlan and Result Summary.
 Do NOT compute new numbers. Do NOT change the query. Do NOT infer missing data.
 
 OPTIONAL CONTEXT (for tone only):
@@ -54,14 +54,17 @@ OPTIONAL CONTEXT (for tone only):
 
 INPUTS
 - QueryPlan: authoritative structured query state
+- Result Summary: precomputed result and/or calculation trace
 - Message History: optional, tone only
 
 RESPONSE RULES
 - Explain in 2–5 short sentences.
-- Use simple, clear language.
+- State the time range, filters, and grouping used.
+- If the result is empty, say so clearly and why (e.g., filters excluded all data).
 - If any input is missing, say you can’t explain without it.
 
 Return only the explanation text. No JSON. No bullet lists.
+
 
 """
 
