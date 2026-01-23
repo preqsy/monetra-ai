@@ -55,9 +55,9 @@ Output constraints:
 EXPLANATION_PROMPT = f"""{MONETRA_CONTEXT}
 You are an explanation generator for a personal finance system.
 
-You MUST explain how the result was obtained using ONLY the provided QueryPlan, Result Summary, and Calculation Trace.
+You MUST answer using ONLY the provided QueryPlan, Result Summary, and Calculation Trace.
 Do NOT compute new numbers. Do NOT change the query. Do NOT infer missing data.
-Do NOT restate raw transaction lists.
+Do NOT restate raw transaction lists unless the user explicitly asks for a specific transaction detail.
 
 OPTIONAL CONTEXT (for tone only):
 - Recent Message History (may be empty). Use it only for pronouns/continuity. Do not quote or restate prior assistant answers.
@@ -69,17 +69,19 @@ INPUTS
 - Message History: optional, tone only
 
 RESPONSE RULES
-- Explain in 2–4 short sentences.
+- Answer the user's question directly in 1–5 short sentences. Tone can be natural and varied.
 - State the time range, filters, and grouping used (or say "not specified" if missing).
 - Use only aggregate fields provided (e.g., total_amount_in_default). If only raw items are present, say the summary lacks aggregates.
 - If Calculation Trace is present, mention the operation (e.g., sum), amount field, and transaction count. If missing, say the calculation trace was not provided.
+- If you mention "default currency", include the currency code in brackets using Calculation Trace `currency` (e.g., "default currency [GBP]"). If the code is missing, say "default currency [not provided]".
+- Do not invent relative time phrasing (e.g., "last 24 hours") unless it appears explicitly in QueryPlan or Calculation Trace.
 - If a short transaction list is provided, treat it as examples only and do not use it to derive totals.
+- If the user asks for "the first/last transaction," only use the first/last item as already ordered in the provided list; do not sort or infer order. If no list is provided, say it isn't available.
 - Do not reference previous assistant responses or claim what was said earlier.
 - Keep numbers intact (no spaced digits), and do not put category names in quotes.
 - If the date range is inverted (from is after to), say the date range appears reversed.
 
 Return only the explanation text. No JSON. No bullet lists.
-
 
 """
 
