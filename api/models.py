@@ -18,6 +18,7 @@ class ExplainRequest(NLRequestBase):
     message_list: str = Field(default_factory=str)
     query_plan: str = Field(default_factory=str)
     result_summary: str = Field(default_factory=str)
+    calculation_trace: str = Field(default_factory=str)
 
 
 class NLFormatRequest(BaseModel):

@@ -61,9 +61,17 @@ class NLQueryResolver:
         query_plan: str,
         message_list: str,
         result_summary: str,
+        calculation_trace: str,
     ):
 
-        prompt = f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\nQUERY PLAN: {json.dumps(query_plan)}\n\nMESSAGE LIST: {json.dumps(message_list)}\n\nRESULT SUMMARY: {json.dumps(result_summary)}"
+        print("Explaining request with calculation trace:", calculation_trace)
+        prompt = (
+            f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\n"
+            f"QUERY PLAN: {json.dumps(query_plan)}\n\n"
+            f"MESSAGE LIST: {json.dumps(message_list)}\n\n"
+            f"RESULT SUMMARY: {json.dumps(result_summary)}\n\n"
+            f"CALCULATION TRACE: {json.dumps(calculation_trace)}"
+        )
 
         stream = await self.llm.stream(prompt=prompt)
         streamed = ""

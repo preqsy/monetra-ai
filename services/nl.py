@@ -93,6 +93,7 @@ class NLService:
         query: str = "",
         query_plan: str = "",
         result_summary: str = "",
+        calculation_trace: str = "",
         message_list: str = "",
     ):
         logfire.debug(f"Explaining request.")
@@ -103,6 +104,7 @@ class NLService:
                 query_plan=query_plan,
                 message_list=message_list,
                 result_summary=result_summary,
+                calculation_trace=calculation_trace,
             )
             async for token in stream:
                 yield f"data: {token}\n\n"

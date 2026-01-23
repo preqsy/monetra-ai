@@ -55,7 +55,7 @@ Output constraints:
 EXPLANATION_PROMPT = f"""{MONETRA_CONTEXT}
 You are an explanation generator for a personal finance system.
 
-You MUST explain how the result was obtained using ONLY the provided QueryPlan and Result Summary.
+You MUST explain how the result was obtained using ONLY the provided QueryPlan, Result Summary, and Calculation Trace.
 Do NOT compute new numbers. Do NOT change the query. Do NOT infer missing data.
 Do NOT restate raw transaction lists.
 
@@ -65,12 +65,14 @@ OPTIONAL CONTEXT (for tone only):
 INPUTS
 - QueryPlan: authoritative structured query state
 - Result Summary: precomputed aggregates and/or calculation trace
+- Calculation Trace: structured description of how aggregates were computed
 - Message History: optional, tone only
 
 RESPONSE RULES
 - Explain in 2–4 short sentences.
 - State the time range, filters, and grouping used (or say "not specified" if missing).
 - Use only aggregate fields provided (e.g., total_amount_in_default). If only raw items are present, say the summary lacks aggregates.
+- If Calculation Trace is present, mention the operation (e.g., sum), amount field, and transaction count. If missing, say the calculation trace was not provided.
 - If a short transaction list is provided, treat it as examples only and do not use it to derive totals.
 - Keep numbers intact (no spaced digits), and do not put category names in quotes.
 
@@ -131,5 +133,6 @@ NLP interpreter for personal finance queries. Translate user input to structured
 - Resolve entity names
 - Return malformed JSON
 - Omit required fields
+- Return empty JSON
 """
 )

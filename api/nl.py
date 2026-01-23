@@ -57,4 +57,5 @@ async def explain_request(
         query_plan=data_obj.query_plan,
         message_list=data_obj.message_list,
         result_summary=data_obj.result_summary,
+        calculation_trace=data_obj.calculation_trace,
     )
