@@ -32,39 +32,6 @@ class NLQueryResolver:
             text = text.split("```", 2)[1]
         return text.strip()
 
-    # async def parse_query_llm(
-    #     self, query: str, prompt: str = RESOLVE_CATEGORY_PROMPT
-    # ) -> NLParse:
-    #     q = query.strip()
-    #     if not q:
-    #         raise ValueError("Empty query")
-
-    #     with logfire.span(
-    #         "LLM Chat for NL Parsing",
-    #         temperature=self.temperature,
-    #         model_name=settings.LLM_MODEL_NAME,
-    #     ):
-    #         raw = await self.llm.chat(
-    #             query=q,
-    #             prompt=f"{prompt}\n\nUSER QUERY: {json.dumps(q)}",
-    #         )
-
-    #     logfire.info("llm_raw_response", text=raw.response)
-
-    #     clean = self.extract_json(raw.response)
-    #     data = json.loads(clean)
-
-    #     try:
-    #         parsed = NLParse.model_validate(data)
-
-    #     except ValidationError as e:
-    #         raise ValueError(f"NLParse validation failed: {e}") from e
-
-    #     parsed.target_text = parsed.target_text.strip().lower()
-
-    #     print(f"NLParse response: {parsed}")
-    #     return parsed
-
     async def interpret_user_query(
         self,
         query: str,
@@ -88,7 +55,7 @@ class NLQueryResolver:
             raise ValueError(f"Interpretation validation failed: {e}") from e
         return llm_rsp_obj
 
-    async def explaination_request(
+    async def explain_request(
         self,
         query: str,
         query_plan: str,
@@ -150,7 +117,6 @@ class NLQueryResolver:
             # with log
             parsed = req.parsed
             print(f"Using pre-parsed NLParse: {parsed}")
-            # parsed = await self.parse_query_llm(query)
 
         except Exception as e:
             return NLResolveResult(

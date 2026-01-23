@@ -98,7 +98,7 @@ class NLService:
         logfire.debug(f"Explaining request.")
 
         async def sse_wrap():
-            stream = self.llm.explaination_request(
+            stream = self.llm.explain_request(
                 query=query,
                 query_plan=query_plan,
                 message_list=message_list,
