@@ -52,6 +52,7 @@ class OllamaProvider(LLMProvider):
         if not q:
             raise ValueError("Empty Query")
 
+        # TODO: Use only prompt here. user query shouldn't be passed here
         data = await self.sllm.acomplete(
             prompt=f"{prompt} \n\n USER QUERY: {json.dumps(q)} \n\n"
         )

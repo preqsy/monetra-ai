@@ -39,11 +39,19 @@ class NLService:
             retriever=self.retriever, temperature=temperature, llm_provider=llm_provider
         )
 
-    async def resolve_user_query(self, data_obj: "NLRequest"):
-        logfire.debug(f"Resolving user query: {data_obj.query}")
-        req = NLResolveRequest(**data_obj.model_dump())
+    async def resolve_user_query(
+        self, user_id: int, query: str, parsed: dict, top_k: int = 25
+    ):
+        logfire.debug(f"Resolving user query: {query}")
+        print(f"Parsed dict: {parsed}")
+        req = NLResolveRequest(
+            user_id=user_id,
+            query=query,
+            parsed=parsed,
+            top_k=top_k,
+        )
         try:
-            resolved = await self.llm.resolve_nl(req)
+            resolved = await self.llm.resolve_category_nl(req)
             logfire.info(f"Successfully resolved: {req.model_dump()} ")
         except Exception as e:
             logfire.error(f"Failed to resolve user query: {str(e)}")
@@ -54,7 +62,7 @@ class NLService:
         logfire.debug(f"Started streaming price formatting: {data_obj.model_dump()}")
 
         async def sse_wrap():
-            stream = self.llm.format_price_query(
+            stream = self.llm.format_resolve_response(
                 amount=data_obj.amount,
                 category=data_obj.category,
                 currency=data_obj.currency,
@@ -127,4 +135,4 @@ def get_nl_service(
 
 
 if TYPE_CHECKING:
-    from api.models import NLRequest, NLFormatRequest
+    from api.models import NLRequestBase, NLFormatRequest

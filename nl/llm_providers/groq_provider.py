@@ -4,7 +4,7 @@ from nl.llm_providers.base import ChatMessage, ChatResult, LLMProvider
 
 from openai import AsyncOpenAI, BaseModel
 from nl.models import Interpretation
-from nl.prompt import SYSTEM_PROMPT
+from nl.prompt import RESOLVE_CATEGORY_PROMPT
 from config import settings
 from openai.types import ResponseFormatJSONSchema
 

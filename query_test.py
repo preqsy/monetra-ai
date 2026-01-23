@@ -23,7 +23,7 @@ async def main():
         top_k=25,
     )
 
-    res = await llm.resolve_nl(req=req)
+    res = await llm.resolve_category_nl(req=req)
 
     # amount = llm.format_price_query(amount=1000, category="food", currency="NGN")
     pprint(f"NL Response: {res}")

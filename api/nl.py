@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from api.models import ExplainRequest, NLRequest, NLFormatRequest, TranslateRequest
+from api.models import (
+    ExplainRequest,
+    NLRequest,
+    NLRequestBase,
+    NLFormatRequest,
+    TranslateRequest,
+)
 from services.nl import NLService, get_nl_service
 from config import settings
 
@@ -13,7 +19,11 @@ async def resolve_nl_query(
     nl_service: NLService = Depends(get_nl_service),
 ):
 
-    return await nl_service.resolve_user_query(data_obj)
+    return await nl_service.resolve_user_query(
+        user_id=data_obj.user_id,
+        query=data_obj.query,
+        parsed=data_obj.query_plan,
+    )
 
 
 @router.post("/format")

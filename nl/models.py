@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, ConfigDict, model_validator
 from rag.schemas.enums import TransactionTypeEnum
 
 
-IntentType = Literal["spent_total", "list_transaction", "unknown"]
+IntentType = Literal["spent_total", "list_transaction", "unknown", "spend"]
 TargetKind = Literal["category", "unknown"]
 
 
@@ -23,7 +23,8 @@ class NLParse(BaseModel):
 class NLResolveRequest(BaseModel):
     user_id: int
     query: str = Field(min_length=1, max_length=500)
-
+    # parsed: dict
+    parsed: NLParse
     top_k: int = Field(default=25, ge=5, le=100)
 
 
@@ -79,7 +80,7 @@ class QueryDelta(BaseModel):
 
     intent: Optional[str] = None
     target_kind: Optional[TargetKind] = None
-    target_reference: Optional[str] = (
+    target_text: Optional[str] = (
         None  # natural-language reference; backend resolves to IDs
     )
     currency_mode: Optional[str] = None  # e.g. "EUR", "USD", "BASE"
