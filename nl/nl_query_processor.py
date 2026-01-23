@@ -46,6 +46,8 @@ class NLQueryResolver:
             prompt=prompt,
         )
 
+        print("LLM Response:", llm_rsp.response)
+
         clean = self.extract_json(llm_rsp.response)
         json_data = json.loads(clean)
         try:
@@ -64,7 +66,7 @@ class NLQueryResolver:
         calculation_trace: str,
     ):
 
-        print("Explaining request with calculation trace:", calculation_trace)
+        # print("Explaining request with calculation trace:", calculation_trace)
         prompt = (
             f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\n"
             f"QUERY PLAN: {json.dumps(query_plan)}\n\n"
@@ -72,6 +74,8 @@ class NLQueryResolver:
             f"RESULT SUMMARY: {json.dumps(result_summary)}\n\n"
             f"CALCULATION TRACE: {json.dumps(calculation_trace)}"
         )
+
+        print("Using prompt:", prompt)
 
         stream = await self.llm.stream(prompt=prompt)
         streamed = ""
