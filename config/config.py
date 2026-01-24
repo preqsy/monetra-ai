@@ -15,12 +15,12 @@ class KafkaConfig(BaseSettings):
 
 
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "prod"
+    ENVIRONMENT: str = "dev"
     LLM_MODEL_NAME: str = (
         "llama3.2:3b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
     )
     # LLM_MODEL_NAME: str = (
-    #     "llama-3.1-8b-instant" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
+    #     "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
     # )
 
     QDRANT_API_KEY: str = ""
