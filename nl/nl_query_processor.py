@@ -60,10 +60,10 @@ class NLQueryResolver:
     async def explain_request(
         self,
         query: str,
-        query_plan: str,
-        message_list: str,
-        result_summary: str,
-        calculation_trace: str,
+        query_plan: dict,
+        message_list: list,
+        result_summary: dict,
+        calculation_trace: dict,
     ):
 
         # print("Explaining request with calculation trace:", calculation_trace)
@@ -74,8 +74,6 @@ class NLQueryResolver:
             f"RESULT SUMMARY: {json.dumps(result_summary)}\n\n"
             f"CALCULATION TRACE: {json.dumps(calculation_trace)}"
         )
-
-        print("Using prompt:", prompt)
 
         stream = await self.llm.stream(prompt=prompt)
         streamed = ""

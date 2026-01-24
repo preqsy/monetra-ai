@@ -42,8 +42,7 @@ class NLService:
     async def resolve_user_query(
         self, user_id: int, query: str, parsed: dict, top_k: int = 25
     ):
-        logfire.debug(f"Resolving user query: {query}")
-        print(f"Parsed dict: {parsed}")
+        logfire.info(f"Resolving user query: {query}")
         req = NLResolveRequest(
             user_id=user_id,
             query=query,
@@ -91,10 +90,10 @@ class NLService:
     async def explain_request(
         self,
         query: str = "",
-        query_plan: str = "",
-        result_summary: str = "",
-        calculation_trace: str = "",
-        message_list: str = "",
+        query_plan: dict = {},
+        result_summary: dict = {},
+        calculation_trace: dict = {},
+        message_list: list = [],
     ):
         logfire.debug(f"Explaining request.")
 

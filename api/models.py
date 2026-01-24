@@ -11,14 +11,14 @@ class NLRequest(NLRequestBase):
 
 
 class TranslateRequest(NLRequestBase):
-    query_plan: str = Field(default_factory=str)
+    query_plan: dict = Field(default_factory=dict)
 
 
 class ExplainRequest(NLRequestBase):
-    message_list: str = Field(default_factory=str)
-    query_plan: str = Field(default_factory=str)
-    result_summary: str = Field(default_factory=str)
-    calculation_trace: str = Field(default_factory=str)
+    message_list: list = Field(default_factory=list)
+    query_plan: dict = Field(default_factory=dict)
+    result_summary: dict = Field(default_factory=dict)
+    calculation_trace: dict = Field(default_factory=dict)
 
 
 class NLFormatRequest(BaseModel):
