@@ -14,11 +14,25 @@ class TranslateRequest(NLRequestBase):
     query_plan: dict = Field(default_factory=dict)
 
 
+class CalculationTrace(BaseModel):
+    transactions_count: int
+    currency: str
+    date_range: dict
+    operation: str
+    metric: str
+
+
+class ResultSummary(BaseModel):
+    total_amount_in_default: float
+    currency: str
+    transactions: list[dict]
+
+
 class ExplainRequest(NLRequestBase):
-    message_list: list = Field(default_factory=list)
+    message_list: list[dict] = Field(default_factory=list)
     query_plan: dict = Field(default_factory=dict)
-    result_summary: dict = Field(default_factory=dict)
-    calculation_trace: dict = Field(default_factory=dict)
+    result_summary: ResultSummary
+    calculation_trace: CalculationTrace
 
 
 class NLFormatRequest(BaseModel):

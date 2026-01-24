@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal
 from fastapi import Query
 from fastapi.responses import StreamingResponse
 from qdrant_client import QdrantClient
+from api.models import CalculationTrace, ResultSummary
 from nl.models import NLResolveRequest
 from nl.nl_query_processor import NLQueryResolver
 from rag.embedder import Embedder
@@ -89,10 +90,10 @@ class NLService:
 
     async def explain_request(
         self,
+        calculation_trace: CalculationTrace,
+        result_summary: ResultSummary,
         query: str = "",
         query_plan: dict = {},
-        result_summary: dict = {},
-        calculation_trace: dict = {},
         message_list: list = [],
     ):
         logfire.debug(f"Explaining request.")

@@ -3,6 +3,7 @@ import json
 from pydantic import ValidationError
 
 import logfire
+from api.models import CalculationTrace, ResultSummary
 from nl.llm_providers.factory import get_llm_provider
 from nl.models import Interpretation, NLParse, NLResolveRequest, NLResolveResult
 from nl.prompt import (
@@ -62,18 +63,18 @@ class NLQueryResolver:
         query: str,
         query_plan: dict,
         message_list: list,
-        result_summary: dict,
-        calculation_trace: dict,
+        result_summary: ResultSummary,
+        calculation_trace: CalculationTrace,
     ):
 
-        # print("Explaining request with calculation trace:", calculation_trace)
         prompt = (
             f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\n"
             f"QUERY PLAN: {json.dumps(query_plan)}\n\n"
             f"MESSAGE LIST: {json.dumps(message_list)}\n\n"
-            f"RESULT SUMMARY: {json.dumps(result_summary)}\n\n"
-            f"CALCULATION TRACE: {json.dumps(calculation_trace)}"
+            f"RESULT SUMMARY: {json.dumps(result_summary.model_dump())}\n\n"
+            f"CALCULATION TRACE: {json.dumps(calculation_trace.model_dump())}"
         )
+        # print(f" Using prompt: {prompt}")
 
         stream = await self.llm.stream(prompt=prompt)
         streamed = ""
