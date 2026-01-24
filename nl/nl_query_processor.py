@@ -39,6 +39,7 @@ class NLQueryResolver:
         query_plan: dict,
     ) -> Interpretation:
 
+        logfire.debug(f"Interpreting query with plan: {query_plan}")
         prompt = f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}"
 
         # print("Using prompt:", prompt)
@@ -47,10 +48,12 @@ class NLQueryResolver:
             prompt=prompt,
         )
 
-        print("LLM Response:", llm_rsp.response)
-
         clean = self.extract_json(llm_rsp.response)
-        json_data = json.loads(clean)
+        try:
+            json_data = json.loads(clean)
+        except json.JSONDecodeError as e:
+            logfire.error(f"Failed to decode LLM JSON response: {str(e)}")
+            raise
         try:
             llm_rsp_obj = Interpretation(**json_data)
         except ValidationError as e:
@@ -67,6 +70,7 @@ class NLQueryResolver:
         calculation_trace: CalculationTrace,
     ):
 
+        logfire.debug("Explaining request with LLM.")
         prompt = (
             f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\n"
             f"QUERY PLAN: {json.dumps(query_plan)}\n\n"
@@ -115,11 +119,13 @@ class NLQueryResolver:
         query = req.query.strip()
 
         if not user_id:
+            logfire.warning("Resolve request missing user_id.")
             return NLResolveResult(
                 ok=False,
                 error="user_id required",
             )
         if not query:
+            logfire.warning("Resolve request missing query.")
             return NLResolveResult(
                 ok=False,
                 error="query required",
@@ -127,9 +133,9 @@ class NLQueryResolver:
         try:
             # with log
             parsed = req.parsed
-            print(f"Using pre-parsed NLParse: {parsed}")
 
         except Exception as e:
+            logfire.error(f"Failed to read parsed request: {str(e)}")
             return NLResolveResult(
                 ok=False,
                 error=str(e),
@@ -144,11 +150,19 @@ class NLQueryResolver:
         data_dict = {}
 
         if parsed.target_kind == "category":
+            logfire.debug(
+                f"Resolving category from transactions for user_id={user_id}, "
+                f"search_text={search_text}"
+            )
             data = self.retriever.resolve_category_id_from_transactions(
                 user_id=user_id,
                 search_text=search_text,
             )
             data_dict = data
+        else:
+            logfire.debug(
+                f"No category resolution needed for target_kind={parsed.target_kind}"
+            )
 
         return NLResolveResult(
             **data_dict,
@@ -164,6 +178,10 @@ class NLQueryResolver:
     ):
         """Formats the response from the backend and streams the LLM response"""
 
+        logfire.debug(
+            f"Formatting resolve response for amount={amount}, category={category}, "
+            f"currency={currency}"
+        )
         prompt = (
             f"{PRICE_FORMAT_PROMPT}\n\n"
             f"AMOUNT: {json.dumps(amount)} "
