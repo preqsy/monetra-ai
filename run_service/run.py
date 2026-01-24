@@ -1,5 +1,6 @@
-import logging
+# import logging
 
+import logfire
 from qdrant_client import QdrantClient
 from config.topics.transaction import TRANSACTION_CREATED
 from consumer import KafkaConsumer
@@ -23,16 +24,14 @@ def index_transaction(transaction_data):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
-    )
-    logger = logging.getLogger("run_service")
-    logger.info("worker starting")
+
+    logfire.configure(service_name="monetraai", environment=settings.ENVIRONMENT)
+
+    logfire.info("worker starting")
     topic = TRANSACTION_CREATED
     try:
         consumer = KafkaConsumer(topic)
         consumer.consume_message(index_transaction)
     except Exception as exc:
-        logger.exception("Kafka consumer failed to start")
+        logfire.exception("Kafka consumer failed to start")
         raise
