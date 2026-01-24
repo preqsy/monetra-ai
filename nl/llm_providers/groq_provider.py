@@ -2,9 +2,11 @@ import json
 from typing import Sequence
 from nl.llm_providers.base import ChatMessage, ChatResult, LLMProvider
 
-from openai import AsyncOpenAI
-from nl.prompt import SYSTEM_PROMPT
+from openai import AsyncOpenAI, BaseModel
+from nl.models import Interpretation
+from nl.prompt import RESOLVE_CATEGORY_PROMPT
 from config import settings
+from openai.types import ResponseFormatJSONSchema
 
 
 class GroqProvider(LLMProvider):
@@ -27,6 +29,7 @@ class GroqProvider(LLMProvider):
         if not query:
             raise ValueError("Empty query")
 
+        # TODO: Use a response format
         response = await self.llm.chat.completions.create(
             model=self.model,
             messages=[
@@ -37,7 +40,32 @@ class GroqProvider(LLMProvider):
         )
         # print(f"OpenAI Response: {response}")
         text = response.choices[0].message.content
-        return ChatResult(text=text, metadata={"model": response.model})
+        return ChatResult(response=text, metadata={"model": response.model})
+
+    async def chat_with_format(
+        self,
+        query: str,
+        prompt: str,
+    ) -> ChatResult:
+        query = query.strip()
+        if not query:
+            raise ValueError("Empty query")
+
+        response = await self.llm.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": query},
+            ],
+            temperature=self.temperature,
+        )
+
+        # print(f"OpenAI Response: {response}")
+
+        text = response.choices[0].message.content
+
+        # print(f"{text}")
+        return ChatResult(response=text, metadata={"model": response.model})
 
     async def stream(self, prompt: str):
         return await self.llm.chat.completions.create(

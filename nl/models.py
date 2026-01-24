@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from enum import Enum
+from pydantic import BaseModel, Field, ConfigDict, model_validator
+
 
 from rag.schemas.enums import TransactionTypeEnum
 
 
-IntentType = Literal["spent_total", "list_transaction", "unknown"]
+IntentType = Literal["spent_total", "list_transaction", "unknown", "spend"]
 TargetKind = Literal["category", "unknown"]
 
 
@@ -19,7 +23,8 @@ class NLParse(BaseModel):
 class NLResolveRequest(BaseModel):
     user_id: int
     query: str = Field(min_length=1, max_length=500)
-
+    # parsed: dict
+    parsed: NLParse
     top_k: int = Field(default=25, ge=5, le=100)
 
 
@@ -68,3 +73,30 @@ class NLResolveResult(BaseModel):
         if (not self.ok) and not self.error:
             raise ValueError("ok=false requires error")
         return self
+
+
+class QueryDelta(BaseModel):
+
+    intent: Optional[str] = None
+    target_kind: Optional[TargetKind] = None
+    target_text: Optional[str] = (
+        None  # natural-language reference; backend resolves to IDs
+    )
+    currency_mode: Optional[str] = None
+    grouping: Optional[str] = None
+
+
+class Ambiguity(BaseModel):
+
+    present: bool
+    reason: Optional[str] = None
+
+
+class Interpretation(BaseModel):
+    """
+    LLM output envelope. Backend owns routing/decisions; this is advisory structure only.
+    """
+
+    explanation_request: bool
+    delta: Optional[QueryDelta] = None
+    ambiguity: Optional[Ambiguity] = None

@@ -15,9 +15,9 @@ class KafkaConfig(BaseSettings):
 
 
 class Settings(BaseSettings):
-    ENVIRONMENT: str = "prod"
+    ENVIRONMENT: str = "dev"
     LLM_MODEL_NAME: str = (
-        "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
+        "llama3.2:3b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
     )
     # LLM_MODEL_NAME: str = (
     #     "Qwen2.5:7b" if ENVIRONMENT == "dev" else "llama-3.1-8b-instant"
@@ -27,7 +27,6 @@ class Settings(BaseSettings):
     QDRANT_URL: str = "localhost:6333"
     QDRANT_COLLECTION_NAME: str = "monetra_collection"
 
-    EMBEDDING_MODEL: str = "nomic-embed-text"
     BACKEND_HEADER: str = ""
     GROQ_API_KEY: str = ""
     GOOGLE_EM_API_KEY: str = ""

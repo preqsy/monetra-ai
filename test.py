@@ -1,47 +1,19 @@
-# import random
-# import sys
-# from datetime import date
-# from qdrant_client import QdrantClient
+from nl.llm_providers.factory import get_llm_provider
+import asyncio
 
-# from rag.embedder import OllamaEmbedder
-# from rag.schemas.transaction import TransactionDoc, TransactionSearchRequest
-# from rag.qdrant_indexer import QdrantIndexer
-# from rag.search.retrieval import Retrieval
+from nl.prompt import TRANSLATE_USER_INTENTION
+
+# from nl.nl_query_processor import NLQueryResolver
 
 
-# def main():
+async def main():
+    nL_query = get_llm_provider(llm_provider="ollama", temperature=0.5)
 
-#     if len(sys.argv) > 2:
-#         return
-
-#     query = sys.argv[1]
-#     qdrant_client = QdrantClient(url="localhost:6333")
-#     embedder = OllamaEmbedder()
-#     indexer = QdrantIndexer(qdrant_client=qdrant_client, embedder=embedder)
-#     retrieval = Retrieval(
-#         indexer=indexer, qdrant_client=qdrant_client, embedder=embedder
-#     )
-#     req = TransactionSearchRequest(user_id=4, query=query)
-#     # retrieval.search_transactions(req)
-
-#     random_doc_id = random.randint(1, 1000)
-#     random_user_id = random.randint(1, 1000)
-#     doc = TransactionDoc(
-#         doc_id="random_doc_id",
-#         doc_type="transaction",
-#         text="Hello world",
-#         user_id=random_user_id,
-#         transaction_id=10,
-#         account_id=4,
-#         category_id=90,
-#         currency="USD",
-#         amount=1000,
-#         date_utc=date.today(),
-#         transaction_type="expense",
-#         category="Food & Dining",
-#     )
-#     indexer.index_document(doc)
-#     # retriever.retrieve_documents(query=query)
+    query = "How much did i spend pn fod?"
+    rsp = await nL_query.chat_with_format(query=query, prompt=TRANSLATE_USER_INTENTION)
+    print(f"Response: {rsp}")
+    print(f"Response type: {type(rsp)}")
 
 
-# main()
+if __name__ == "__main__":
+    asyncio.run(main())

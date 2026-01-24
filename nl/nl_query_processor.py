@@ -3,9 +3,15 @@ import json
 from pydantic import ValidationError
 
 import logfire
+from api.models import CalculationTrace, ResultSummary
 from nl.llm_providers.factory import get_llm_provider
-from nl.models import NLParse, NLResolveRequest, NLResolveResult
-from nl.prompt import PRICE_FORMAT_PROMPT, SYSTEM_PROMPT
+from nl.models import Interpretation, NLParse, NLResolveRequest, NLResolveResult
+from nl.prompt import (
+    EXPLANATION_PROMPT,
+    PRICE_FORMAT_PROMPT,
+    RESOLVE_CATEGORY_PROMPT,
+    TRANSLATE_USER_INTENTION,
+)
 from rag.search.retrieval import Retrieval
 from config import settings
 
@@ -27,52 +33,109 @@ class NLQueryResolver:
             text = text.split("```", 2)[1]
         return text.strip()
 
-    async def parse_query_llm(self, query: str) -> NLParse:
-        q = query.strip()
-        if not q:
-            raise ValueError("Empty query")
+    async def interpret_user_query(
+        self,
+        query: str,
+        query_plan: dict,
+    ) -> Interpretation:
 
-        with logfire.span(
-            "LLM Chat for NL Parsing",
-            temperature=self.temperature,
-            model_name=settings.LLM_MODEL_NAME,
-        ):
-            raw = await self.llm.chat(
-                query=q,
-                prompt=f"{SYSTEM_PROMPT}\n\nUSER QUERY: {json.dumps(q)}",
-            )
+        logfire.debug(f"Interpreting query with plan: {query_plan}")
+        prompt = f"{TRANSLATE_USER_INTENTION} \n\n QUERY PLAN: {json.dumps(query_plan)}"
 
-        logfire.info("llm_raw_response", text=raw.text)
+        # print("Using prompt:", prompt)
+        llm_rsp = await self.llm.chat_with_format(
+            query=query,
+            prompt=prompt,
+        )
 
-        clean = self.extract_json(raw.text)
-        data = json.loads(clean)
-
+        clean = self.extract_json(llm_rsp.response)
         try:
-            parsed = NLParse.model_validate(data)
+            json_data = json.loads(clean)
+        except json.JSONDecodeError as e:
+            logfire.error(f"Failed to decode LLM JSON response: {str(e)}")
+            raise
+        try:
+            llm_rsp_obj = Interpretation(**json_data)
         except ValidationError as e:
-            raise ValueError(f"NLParse validation failed: {e}") from e
+            logfire.error(f"Interpretation validation failed: {str(e)}")
+            raise ValueError(f"Interpretation validation failed: {e}") from e
+        return llm_rsp_obj
 
-        parsed.target_text = parsed.target_text.strip().lower()
-        return parsed
+    async def explain_request(
+        self,
+        query: str,
+        query_plan: dict,
+        message_list: list,
+        result_summary: ResultSummary,
+        calculation_trace: CalculationTrace,
+    ):
 
-    async def resolve_nl(self, req: NLResolveRequest) -> NLResolveResult:
+        logfire.debug("Explaining request with LLM.")
+        prompt = (
+            f"{EXPLANATION_PROMPT}\n\n USER QUERY: {json.dumps(query)}\n\n"
+            f"QUERY PLAN: {json.dumps(query_plan)}\n\n"
+            f"MESSAGE LIST: {json.dumps(message_list)}\n\n"
+            f"RESULT SUMMARY: {json.dumps(result_summary.model_dump())}\n\n"
+            f"CALCULATION TRACE: {json.dumps(calculation_trace.model_dump())}"
+        )
+        # print(f" Using prompt: {prompt}")
+
+        stream = await self.llm.stream(prompt=prompt)
+        streamed = ""
+        if inspect.isawaitable(stream):
+            stream = await stream
+        async for chunk in stream:
+            delta = getattr(chunk, "delta", None)
+            if delta:
+                streamed += delta
+                yield delta
+                continue
+
+            text = getattr(chunk, "text", None)
+            if text:
+                if text.startswith(streamed):
+                    remainder = text[len(streamed) :]
+                    if remainder:
+                        yield remainder
+                    streamed = text
+                    continue
+
+                if text != streamed:
+                    yield text
+                    streamed = text
+                continue
+
+            choices = getattr(chunk, "choices", None)
+            if choices:
+                choice = choices[0]
+                choice_delta = getattr(choice, "delta", None)
+                content = getattr(choice_delta, "content", None)
+                if content:
+                    streamed += content
+                    yield content
+
+    async def resolve_category_nl(self, req: NLResolveRequest) -> NLResolveResult:
         user_id = req.user_id
         query = req.query.strip()
 
         if not user_id:
+            logfire.warning("Resolve request missing user_id.")
             return NLResolveResult(
                 ok=False,
                 error="user_id required",
             )
         if not query:
+            logfire.warning("Resolve request missing query.")
             return NLResolveResult(
                 ok=False,
                 error="query required",
             )
         try:
             # with log
-            parsed = await self.parse_query_llm(query)
+            parsed = req.parsed
+
         except Exception as e:
+            logfire.error(f"Failed to read parsed request: {str(e)}")
             return NLResolveResult(
                 ok=False,
                 error=str(e),
@@ -87,29 +150,38 @@ class NLQueryResolver:
         data_dict = {}
 
         if parsed.target_kind == "category":
+            logfire.debug(
+                f"Resolving category from transactions for user_id={user_id}, "
+                f"search_text={search_text}"
+            )
             data = self.retriever.resolve_category_id_from_transactions(
                 user_id=user_id,
                 search_text=search_text,
             )
             data_dict = data
+        else:
+            logfire.debug(
+                f"No category resolution needed for target_kind={parsed.target_kind}"
+            )
 
         return NLResolveResult(
             **data_dict,
             ok=True,
             parse=parsed,
         )
-        # else:
-        #     return NLResolveResult(
-        #         ok=False,
-        #         error="Unsupported target_kind",
-        #     )
 
-    async def format_price_query(
+    async def format_resolve_response(
         self,
         amount: int,
         category: str,
         currency: str,
     ):
+        """Formats the response from the backend and streams the LLM response"""
+
+        logfire.debug(
+            f"Formatting resolve response for amount={amount}, category={category}, "
+            f"currency={currency}"
+        )
         prompt = (
             f"{PRICE_FORMAT_PROMPT}\n\n"
             f"AMOUNT: {json.dumps(amount)} "
