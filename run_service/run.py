@@ -8,6 +8,9 @@ from rag.embedder import Embedder
 from rag.schemas.transaction import TransactionDoc
 from rag.qdrant_indexer import QdrantIndexer
 from config import settings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def index_transaction(transaction_data, qdrant_client, embedder, indexer):

@@ -7,6 +7,10 @@ from fastapi.responses import JSONResponse
 from config import settings
 from api import router
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
