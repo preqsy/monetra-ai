@@ -24,9 +24,14 @@ app = FastAPI(lifespan=lifespan)
 
 logfire.instrument_fastapi(app)
 
+EXCLUDED_PATHS = ["/health"]
+
 
 @app.middleware("http")
 async def check_backend_header(req: Request, call_next):
+    if req.url.path in EXCLUDED_PATHS:
+        return await call_next(req)
+
     backend_header = req.headers.get("monetra-ai-key")
 
     if not backend_header or backend_header != settings.BACKEND_HEADER:
